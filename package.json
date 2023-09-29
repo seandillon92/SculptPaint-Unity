@@ -1,0 +1,16 @@
+{
+  "name": "com.sean-dillon.sculpt-paint-runtime",
+  "version": "0.0.0",
+  "displayName": "Runtime Sculpt & Paint",
+  "description": "Package for sculpting and painting models in Play mode.",
+  "keywords": [
+    "sculpt",
+    "paint",
+    "runtime"
+  ],
+  "author": {
+    "name": "Sean Dillon",
+    "email": "sean.daniel.dillon@gmail.com",
+    "url": "sean-dillon.com"
+  }
+}

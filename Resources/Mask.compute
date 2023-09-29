@@ -1,0 +1,58 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma enable_d3d11_debug_symbols
+#pragma kernel WriteMask
+#pragma kernel UpdateMask
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Write;
+Texture2D<float4> Read1;
+
+float pressure;
+float dissipation;
+
+[numthreads(8,8,1)]
+void UpdateMask(uint3 id : SV_DispatchThreadID)
+{
+    float w = saturate(Read1[id.xy].x);
+    if (w == 0)
+        return;
+    w -= dissipation;
+    w = saturate(w);
+    Write[id.xy] = float4(w, 1 - w, 0, 0);
+}
+
+void WriteOverlap(float2 coords, float w)
+{
+    if (w > 0)
+    {
+        Write[uint2(coords.x, coords.y)] = float4(w, 0, 0, 0);
+    }
+}
+
+[numthreads(8, 8, 1)]
+void WriteMask(uint3 id : SV_DispatchThreadID)
+{
+    float3 r = Read1[id.xy].xyz;
+    float2 xy = Read1[id.xy].xy;
+    float weight = r.z;
+    
+    uint w, h;
+    Write.GetDimensions(w, h);
+    
+    xy.x *= h;
+    xy.y *= w;
+    float t = frac(xy.x);
+    float lowX = floor(xy.x);
+    float highX = ceil(xy.x);
+   
+    float2 f = floor(xy);
+    float2 c = ceil(xy);
+    WriteOverlap(f, weight);
+    WriteOverlap(c, weight);
+}
+
+
+
+
+
