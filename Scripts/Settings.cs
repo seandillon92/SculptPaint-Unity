@@ -86,4 +86,7 @@ internal class SculptSettings
 {
     [SerializeField]
     internal MeshFilter mesh;
+
+    [SerializeField]
+    internal Camera camera;
 }

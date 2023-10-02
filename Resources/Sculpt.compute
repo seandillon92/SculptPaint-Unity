@@ -1,26 +1,45 @@
 #pragma kernel Update
 #pragma enable_d3d11_debug_symbols
+#include "UnityCG.cginc"
 
-// RWStructuredBuffer to read and write vertices in place
 RWByteAddressBuffer vertices;
 uint stride;
 uint size;
+float4x4 mvp;
+float2 mousePos;
+float aspect;
+float brushSize;
+
+Texture2D brushTexture;
+SamplerState linearClamp;
 
 [numthreads(1, 1, 1)]
 void Update (uint3 id : SV_DispatchThreadID) {
+
     // Fetch the current vertex position
     uint offset = id.x * stride;
     uint x = vertices.Load(offset);
     uint y = vertices.Load(offset + size);
     uint z = vertices.Load(offset + size* 2);
 
-    float3 vertex;
+    float4 vertex;
     vertex.x = asfloat(x);
     vertex.y = asfloat(y);
     vertex.z = asfloat(z);
+    vertex.w = 1.0f;
 
-    // Modify the vertex position (e.g., scale by 1.5)
-    vertex *= 0.999;
+
+    float4 projected = ComputeScreenPos(mul(mvp, vertex));
+    projected.xyz /= projected.w;
+
+    float2 distance = mousePos - projected.xy;
+    distance.x *= aspect;
+
+    float2 coords = distance * brushSize + float2(0.5, 0.5);
+    float w = brushTexture.SampleLevel(linearClamp, coords, 0, 0).a;
+
+    // Modify the vertex position
+    vertex *= lerp(1.0, 0.99, w);
 
     x = asuint(vertex.x);
     y = asuint(vertex.y);
