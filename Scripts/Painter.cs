@@ -30,10 +30,9 @@ public class Painter: MonoBehaviour
 
         m_brush.Update();
         var lmb = Input.GetMouseButton(0);
-        m_mask.Update(lmb);
-
         if (lmb)
         {
+            m_mask.Update(true);
             StartCoroutine(MeltDown());
         }
     }
@@ -50,6 +49,15 @@ public class Painter: MonoBehaviour
             m_sculpt.Update(position, deformation:0.0001f * Time.deltaTime);
             timer += Time.deltaTime;
         }
+
+        timer = 0f;
+        while (timer < maxTime)
+        {
+            yield return null;
+            m_mask.Update(false);
+            timer+= Time.deltaTime;
+        }
+
     }
 
     private void UpdateRotation()

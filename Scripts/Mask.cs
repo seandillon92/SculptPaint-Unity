@@ -37,19 +37,15 @@ internal class Mask
 
     internal void Update(bool write)
     {
-        UpdateCaptures();
         UpdateMask(write);
     }
 
-    private void UpdateCaptures()
-    {
-        m_settings.mask.capture.Update();
-    }
 
     private void UpdateMask(bool write)
     {
         if (write)
         {
+            m_settings.mask.capture.Update();
             m_shader.SetTexture(m_writeKernel, "Write", m_buffer.read);
             m_shader.SetTexture(m_writeKernel, "Read1", m_settings.mask.capture.texture);
 
