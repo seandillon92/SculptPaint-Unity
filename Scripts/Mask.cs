@@ -35,10 +35,10 @@ internal class Mask
         m_buffer = new PingPongBuffer(read, write);
     }
 
-    internal void Update()
+    internal void Update(bool write)
     {
         UpdateCaptures();
-        UpdateMask();
+        UpdateMask(write);
     }
 
     private void UpdateCaptures()
@@ -46,9 +46,9 @@ internal class Mask
         m_settings.mask.capture.Update();
     }
 
-    private void UpdateMask()
+    private void UpdateMask(bool write)
     {
-        if (Input.GetMouseButton(0))
+        if (write)
         {
             m_shader.SetTexture(m_writeKernel, "Write", m_buffer.read);
             m_shader.SetTexture(m_writeKernel, "Read1", m_settings.mask.capture.texture);

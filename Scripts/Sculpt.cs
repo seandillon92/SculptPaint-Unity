@@ -34,10 +34,8 @@ internal class Sculpt
         // Debug.Log(m_mesh.GetVertexAttributeOffset(UnityEngine.Rendering.VertexAttribute.TexCoord0));
     }
 
-    internal void Update()
+    internal void Update(Vector3 screenPos, float deformation)
     {
-        if (Input.GetMouseButton(0))
-        {
             var model = m_settings.sculpt.mesh.transform.localToWorldMatrix;
             var view = m_settings.sculpt.camera.worldToCameraMatrix;
             var projection = m_settings.sculpt.camera.projectionMatrix;
@@ -46,14 +44,12 @@ internal class Sculpt
 
             m_shader.SetMatrix(m_MVP, mvp);
 
-            var input = m_settings.mask.camera.ScreenToViewportPoint(Input.mousePosition);
+            var input = m_settings.mask.camera.ScreenToViewportPoint(screenPos);
             var position = new Vector2(input.x, input.y);
             m_shader.SetVector("mousePos", position);
             m_shader.SetFloat("aspect", m_settings.sculpt.camera.aspect);
             m_shader.SetFloat("brushSize",1.0f/m_settings.brush.size);
-
+            m_shader.SetFloat("maxDeformation", deformation);
             RenderDocCapture.RunWithCapture(() => { m_shader.Dispatch(m_kernel, m_threadGroupX, 1, 1); }, 1);
-           
-        }
     }
 }

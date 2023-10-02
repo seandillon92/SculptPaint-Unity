@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 public class Painter: MonoBehaviour
@@ -28,8 +29,27 @@ public class Painter: MonoBehaviour
         UpdateDistance();
 
         m_brush.Update();
-        m_mask.Update();
-        m_sculpt.Update();
+        var lmb = Input.GetMouseButton(0);
+        m_mask.Update(lmb);
+
+        if (lmb)
+        {
+            StartCoroutine(MeltDown());
+        }
+    }
+
+    private IEnumerator MeltDown()
+    {
+        var timer = 0.0f;
+        var maxTime = 1.5f;
+        var position = Input.mousePosition;
+
+        while(timer < maxTime)
+        {
+            yield return null;
+            m_sculpt.Update(position, deformation:0.0001f * Time.deltaTime);
+            timer += Time.deltaTime;
+        }
     }
 
     private void UpdateRotation()
