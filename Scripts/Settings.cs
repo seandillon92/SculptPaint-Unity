@@ -12,6 +12,9 @@ internal class Settings
 
     [SerializeField]
     internal MaskSettings mask;
+
+    [SerializeField]
+    internal SculptSettings sculpt;
 }
 
 [Serializable]
@@ -76,4 +79,11 @@ internal class MaskSettings
 
     [SerializeField]
     internal Capture capture;
+}
+
+[Serializable]
+internal class SculptSettings
+{
+    [SerializeField]
+    internal MeshFilter mesh;
 }

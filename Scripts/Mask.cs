@@ -17,10 +17,10 @@ internal class Mask
 
         m_settings.mask.capture.Init(m_settings.mask.camera, m_settings.mask.layer);
 
-        var read = new RenderTexture(2048, 2048, 1, RenderTextureFormat.RG16);
+        var read = new RenderTexture(2048, 2048, 1, RenderTextureFormat.ARGBHalf);
         read.enableRandomWrite = true;
 
-        var write = new RenderTexture(2048, 2048, 1, RenderTextureFormat.RG16);
+        var write = new RenderTexture(2048, 2048, 1, RenderTextureFormat.ARGBHalf);
         write.enableRandomWrite = true;
 
         if (!read.Create())

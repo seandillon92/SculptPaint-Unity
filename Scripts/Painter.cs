@@ -1,35 +1,23 @@
 using System;
 using UnityEngine;
 
-public class Painter : MonoBehaviour
+public class Painter: MonoBehaviour
 {
     [SerializeField]
     private Settings m_settings;
 
     private Mask m_mask;
     private Brush m_brush;
+    private Sculpt m_sculpt;
 
     private Vector3? m_lastDistanceMousePos;
     private Vector3? m_lastRotationMousePos;
 
     private void Start()
     {
-        var read = new RenderTexture(2048, 2048, 1, RenderTextureFormat.RGFloat);
-        read.enableRandomWrite = true;
-        if (!read.Create())
-        {
-            throw new Exception("Could not create texture");
-        }
-
-        var write = new RenderTexture(2048, 2048, 1, RenderTextureFormat.RGFloat);
-        write.enableRandomWrite = true;
-        if (!write.Create())
-        {
-            throw new Exception("Could not create texure");
-        }
-
         m_mask = new Mask(m_settings);
         m_brush = new Brush(m_settings);
+        m_sculpt = new Sculpt(m_settings);
 
         m_settings.mask.capture.material = m_settings.brush.material;
     }
@@ -41,6 +29,7 @@ public class Painter : MonoBehaviour
 
         m_brush.Update();
         m_mask.Update();
+        m_sculpt.Update();
     }
 
     private void UpdateRotation()

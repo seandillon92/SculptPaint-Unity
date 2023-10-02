@@ -1,0 +1,33 @@
+#pragma kernel Update
+#pragma enable_d3d11_debug_symbols
+
+// RWStructuredBuffer to read and write vertices in place
+RWByteAddressBuffer vertices;
+uint stride;
+uint size;
+
+[numthreads(1, 1, 1)]
+void Update (uint3 id : SV_DispatchThreadID) {
+    // Fetch the current vertex position
+    uint offset = id.x * stride;
+    uint x = vertices.Load(offset);
+    uint y = vertices.Load(offset + size);
+    uint z = vertices.Load(offset + size* 2);
+
+    float3 vertex;
+    vertex.x = asfloat(x);
+    vertex.y = asfloat(y);
+    vertex.z = asfloat(z);
+
+    // Modify the vertex position (e.g., scale by 1.5)
+    vertex *= 0.999;
+
+    x = asuint(vertex.x);
+    y = asuint(vertex.y);
+    z = asuint(vertex.z);
+
+    // Write the modified vertex position
+    vertices.Store(offset, x);
+    vertices.Store(offset + size,y);
+    vertices.Store(offset + size * 2, z);
+}
