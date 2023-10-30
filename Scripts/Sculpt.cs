@@ -8,12 +8,14 @@ internal class Sculpt
     private int m_threadGroupX;
     private Mesh m_mesh;
     private int m_MVP;
+    private int m_direction;
     internal Sculpt(Settings settings)
     {
         m_settings = settings;
         m_shader = Resources.Load<ComputeShader>("Sculpt");
         m_kernel = m_shader.FindKernel("Update");
         m_MVP = Shader.PropertyToID("mvp");
+        m_direction = Shader.PropertyToID("direction");
 
 
         m_mesh = m_settings.sculpt.mesh.sharedMesh;
@@ -30,26 +32,32 @@ internal class Sculpt
         m_shader.SetInt("size", 4);
 
         m_shader.SetTexture(m_kernel, "brushTexture", m_settings.brush.texture);
-
-        // Debug.Log(m_mesh.GetVertexAttributeOffset(UnityEngine.Rendering.VertexAttribute.TexCoord0));
     }
 
-    internal void Update(Vector3 screenPos, float deformation)
+    internal void Update(
+        Matrix4x4 mvp,
+        Vector3 screenPos, 
+        float deformation, 
+        Vector3 direction, 
+        Space space)
     {
-            var model = m_settings.sculpt.mesh.transform.localToWorldMatrix;
-            var view = m_settings.sculpt.camera.worldToCameraMatrix;
-            var projection = m_settings.sculpt.camera.projectionMatrix;
-                //GL.GetGPUProjectionMatrix(m_settings.sculpt.camera.projectionMatrix, false);
-            var mvp = projection * view * model;
+        if (space == Space.World)
+        {
+            direction =  
+                m_settings.sculpt.mesh.transform.worldToLocalMatrix.MultiplyVector(direction).normalized;
+        }
 
-            m_shader.SetMatrix(m_MVP, mvp);
+        direction *= Time.deltaTime * m_settings.sculpt.strength;
 
-            var input = m_settings.mask.camera.ScreenToViewportPoint(screenPos);
-            var position = new Vector2(input.x, input.y);
-            m_shader.SetVector("mousePos", position);
-            m_shader.SetFloat("aspect", m_settings.sculpt.camera.aspect);
-            m_shader.SetFloat("brushSize",1.0f/m_settings.brush.size);
-            m_shader.SetFloat("maxDeformation", deformation);
-            RenderDocCapture.RunWithCapture(() => { m_shader.Dispatch(m_kernel, m_threadGroupX, 1, 1); }, 1);
+        m_shader.SetMatrix(m_MVP, mvp);
+        m_shader.SetVector(m_direction, direction);
+        var input = m_settings.mask.camera.ScreenToViewportPoint(screenPos);
+        var position = new Vector2(input.x, input.y);
+        m_shader.SetVector("mousePos", position);
+        m_shader.SetFloat("aspect", m_settings.sculpt.camera.aspect);
+        m_shader.SetFloat("brushSize", 1.0f / m_settings.brush.size);
+        m_shader.SetFloat("maxDeformation", deformation);
+        m_shader.SetVector(m_direction, direction);
+        m_shader.Dispatch(m_kernel, m_threadGroupX, 1, 1);
     }
 }

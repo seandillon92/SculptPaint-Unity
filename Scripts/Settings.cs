@@ -69,6 +69,9 @@ internal class MaskSettings
     internal float dissipation = 0.1f;
 
     [SerializeField]
+    internal float delay = 5.0f;
+
+    [SerializeField]
     internal Camera camera;
 
     [SerializeField]
@@ -89,4 +92,7 @@ internal class SculptSettings
 
     [SerializeField]
     internal Camera camera;
+
+    [SerializeField]
+    internal float strength;
 }

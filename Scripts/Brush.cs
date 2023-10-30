@@ -1,5 +1,3 @@
-using System;
-using UnityEditorInternal;
 using UnityEngine;
 
 internal class Brush

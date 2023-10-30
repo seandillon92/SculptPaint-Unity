@@ -35,34 +35,26 @@ internal class Mask
         m_buffer = new PingPongBuffer(read, write);
     }
 
-    internal void Update(bool write)
+    internal void Write(Texture capture)
     {
-        UpdateMask(write);
+        m_shader.SetFloat("delay", m_settings.mask.delay);
+        m_shader.SetTexture(m_writeKernel, "Write", m_buffer.read);
+        m_shader.SetTexture(m_writeKernel, "Read1", capture);
+
+        m_shader.SetFloat("pressure", m_settings.brush.pressure * Time.deltaTime);
+        m_shader.GetKernelThreadGroupSizes(m_writeKernel, out uint x, out uint y, out _);
+        m_shader.Dispatch(
+            m_writeKernel,
+            (int)(m_settings.mask.capture.texture.width / x),
+            (int)(m_settings.mask.capture.texture.height / y), 1);
     }
 
-
-    private void UpdateMask(bool write)
+    internal void Update()
     {
-        if (write)
-        {
-            m_settings.mask.capture.Update();
-            m_shader.SetTexture(m_writeKernel, "Write", m_buffer.read);
-            m_shader.SetTexture(m_writeKernel, "Read1", m_settings.mask.capture.texture);
-
-            m_shader.SetFloat("pressure", m_settings.brush.pressure * Time.deltaTime);
-            m_shader.GetKernelThreadGroupSizes(m_writeKernel, out uint x, out uint y, out _);
-            m_shader.Dispatch(
-                m_writeKernel,
-                (int)(m_settings.mask.capture.texture.width / x),
-                (int)(m_settings.mask.capture.texture.height / y), 1);
-        }
-
-        {
-            m_shader.SetTexture(m_updateKernel, "Write", m_buffer.write);
-            m_shader.SetTexture(m_updateKernel, "Read1", m_buffer.read);
-            m_shader.GetKernelThreadGroupSizes(m_updateKernel, out uint x, out uint y, out _);
-            m_shader.Dispatch(m_updateKernel, (int)(m_buffer.read.width / x), (int)(m_buffer.read.height / y), 1);
-        }
+        m_shader.SetTexture(m_updateKernel, "Write", m_buffer.write);
+        m_shader.SetTexture(m_updateKernel, "Read1", m_buffer.read);
+        m_shader.GetKernelThreadGroupSizes(m_updateKernel, out uint x, out uint y, out _);
+        m_shader.Dispatch(m_updateKernel, (int)(m_buffer.read.width / x), (int)(m_buffer.read.height / y), 1);
 
         m_shader.SetFloat("dissipation", Time.deltaTime * m_settings.mask.dissipation);
         m_settings.mask.material.SetTexture("_MainTex", m_buffer.write);

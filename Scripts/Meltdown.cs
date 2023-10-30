@@ -1,8 +1,7 @@
-using System;
 using System.Collections;
 using UnityEngine;
 
-public class Painter: MonoBehaviour
+public class Meltdown: MonoBehaviour
 {
     [SerializeField]
     private Settings m_settings;
@@ -32,32 +31,45 @@ public class Painter: MonoBehaviour
         var lmb = Input.GetMouseButton(0);
         if (lmb)
         {
-            m_mask.Update(true);
             StartCoroutine(MeltDown());
         }
+
+        m_mask.Update();
+
     }
 
     private IEnumerator MeltDown()
     {
+        var capture = m_settings.mask.capture;
+        capture.Update();
+        m_mask.Write(capture.texture);
+        yield return MeltGeometry();
+    }
+
+    private IEnumerator MeltGeometry()
+    {
         var timer = 0.0f;
-        var maxTime = 1.5f;
+        var maxTime = m_settings.mask.delay;
         var position = Input.mousePosition;
 
-        while(timer < maxTime)
-        {
-            yield return null;
-            m_sculpt.Update(position, deformation:0.0001f * Time.deltaTime);
-            timer += Time.deltaTime;
-        }
+        var model = m_settings.sculpt.mesh.transform.localToWorldMatrix;
+        var view = m_settings.sculpt.camera.worldToCameraMatrix;
+        var projection = m_settings.sculpt.camera.projectionMatrix;
+        var mvp = projection * view * model;
 
-        timer = 0f;
         while (timer < maxTime)
         {
-            yield return null;
-            m_mask.Update(false);
-            timer+= Time.deltaTime;
-        }
+            m_sculpt.Update(
+                mvp: mvp,
+                position, 
+                deformation:0.0001f * Time.deltaTime, 
+                direction: Vector3.down,
+                space: Space.Self);
 
+            yield return null;
+
+            timer += Time.deltaTime;
+        }
     }
 
     private void UpdateRotation()
