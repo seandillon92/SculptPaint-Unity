@@ -10,6 +10,9 @@ uint offset_pos;
 uint offset_norm;
 uint offset_tangent;
 
+uint iteration_offset;
+uint iteration;
+
 float4x4 mvp;
 float2 mousePos;
 float aspect;
@@ -30,7 +33,9 @@ SamplerState linearClamp;
 void Update (uint3 id : SV_DispatchThreadID) {
 
     // Fetch the current vertex position
-    uint offset = id.x * stride + offset_pos;
+    uint index = id.x + iteration * iteration_offset;
+
+    uint offset = index * stride + offset_pos;
     uint x = vertices.Load(offset);
     uint y = vertices.Load(offset + size);
     uint z = vertices.Load(offset + size* 2);
@@ -53,7 +58,7 @@ void Update (uint3 id : SV_DispatchThreadID) {
 
     if (space == 2) //normal space
     {
-        uint offset = id.x * stride + offset_norm;
+        uint offset = index * stride + offset_norm;
         float3 normal;
         normal.x = asfloat(vertices.Load(offset));
         normal.y = asfloat(vertices.Load(offset + size));
@@ -61,7 +66,7 @@ void Update (uint3 id : SV_DispatchThreadID) {
 
         float3 tangent;
         
-        offset = id.x * stride + offset_tangent;
+        offset = index * stride + offset_tangent;
         tangent.x = asfloat(vertices.Load(offset));
         tangent.y = asfloat(vertices.Load(offset + size));
         tangent.z = asfloat(vertices.Load(offset + size * 2));

@@ -19,7 +19,7 @@ internal class Sculpt
         m_direction = Shader.PropertyToID("direction");
 
 
-        m_mesh = m_settings.sculpt.mesh.sharedMesh;
+        m_mesh = m_settings.sculpt.mesh.mesh;
         m_mesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
 
         using var buffer = m_mesh.GetVertexBuffer(0);
@@ -70,6 +70,21 @@ internal class Sculpt
         m_shader.SetFloat("brushSize", 1.0f / m_settings.brush.size);
         m_shader.SetFloat("maxDeformation", deformation);
         m_shader.SetVector(m_direction, direction);
-        m_shader.Dispatch(m_kernel, m_threadGroupX, 1, 1);
+        var maxThreadSize = 65535;
+        var iterations = m_threadGroupX / maxThreadSize;
+
+        m_shader.SetInt("iteration_offset", maxThreadSize);
+        for (int i = 0; i < iterations; i++)
+        {
+            m_shader.SetInt("iteration", i);
+            
+            m_shader.Dispatch(m_kernel, maxThreadSize, 1, 1);
+        }
+        if (m_threadGroupX % maxThreadSize > 0 )
+        {
+            m_shader.SetInt("iteration", iterations);
+            m_shader.Dispatch(m_kernel, m_threadGroupX % maxThreadSize, 1, 1);
+        }
+
     }
 }
