@@ -38,6 +38,9 @@ internal class ControlSettings
 
     [SerializeField]
     internal float distanceChangeSpeed = 1.0f;
+
+    [SerializeField]
+    internal Transform transform;
 }
 
 [Serializable]
@@ -87,6 +90,13 @@ internal class MaskSettings
 [Serializable]
 internal class SculptSettings
 {
+    internal enum Space
+    {
+        World = 0, 
+        Local = 1,
+        Normal = 2,
+    }
+
     [SerializeField]
     internal MeshFilter mesh;
 
@@ -95,4 +105,10 @@ internal class SculptSettings
 
     [SerializeField]
     internal float strength;
+
+    [SerializeField]
+    internal Space space;
+
+    [SerializeField]
+    internal Vector3 direction;
 }

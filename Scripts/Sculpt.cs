@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 internal class Sculpt
 {
@@ -30,6 +31,14 @@ internal class Sculpt
 
         m_shader.SetInt("stride", m_mesh.GetVertexBufferStride(0));
         m_shader.SetInt("size", 4);
+        
+        var position = m_mesh.GetVertexAttributeOffset(VertexAttribute.Position);
+        var normal = m_mesh.GetVertexAttributeOffset(VertexAttribute.Normal);
+        var tangent = m_mesh.GetVertexAttributeOffset(VertexAttribute.Tangent);
+
+        m_shader.SetInt("offset_pos", position);
+        m_shader.SetInt("offset_norm", normal);
+        m_shader.SetInt("offset_tangent", tangent);
 
         m_shader.SetTexture(m_kernel, "brushTexture", m_settings.brush.texture);
     }
@@ -37,15 +46,18 @@ internal class Sculpt
     internal void Update(
         Matrix4x4 mvp,
         Vector3 screenPos, 
-        float deformation, 
-        Vector3 direction, 
-        Space space)
+        float deformation)
     {
-        if (space == Space.World)
+        var direction = m_settings.sculpt.direction;
+        var space = m_settings.sculpt.space;
+        if (space == SculptSettings.Space.World)
         {
             direction =  
                 m_settings.sculpt.mesh.transform.worldToLocalMatrix.MultiplyVector(direction).normalized;
         }
+
+
+        m_shader.SetInt("space", (int)space);
 
         direction *= Time.deltaTime * m_settings.sculpt.strength;
 

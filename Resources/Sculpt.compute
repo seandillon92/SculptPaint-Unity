@@ -5,6 +5,11 @@
 RWByteAddressBuffer vertices;
 uint stride;
 uint size;
+
+uint offset_pos;
+uint offset_norm;
+uint offset_tangent;
+
 float4x4 mvp;
 float2 mousePos;
 float aspect;
@@ -13,6 +18,11 @@ float maxDeformation;
 
 float3 direction;
 
+// 0 - World
+// 1 - Local
+// 2 - Normal
+uint space;
+
 Texture2D brushTexture;
 SamplerState linearClamp;
 
@@ -20,7 +30,7 @@ SamplerState linearClamp;
 void Update (uint3 id : SV_DispatchThreadID) {
 
     // Fetch the current vertex position
-    uint offset = id.x * stride;
+    uint offset = id.x * stride + offset_pos;
     uint x = vertices.Load(offset);
     uint y = vertices.Load(offset + size);
     uint z = vertices.Load(offset + size* 2);
@@ -40,6 +50,26 @@ void Update (uint3 id : SV_DispatchThreadID) {
 
     float2 coords = distance * brushSize + float2(0.5, 0.5);
     float w = brushTexture.SampleLevel(linearClamp, coords, 0, 0).a;
+
+    if (space == 2) //normal space
+    {
+        uint offset = id.x * stride + offset_norm;
+        float3 normal;
+        normal.x = asfloat(vertices.Load(offset));
+        normal.y = asfloat(vertices.Load(offset + size));
+        normal.z = asfloat(vertices.Load(offset + size * 2));
+
+        float3 tangent;
+        
+        offset = id.x * stride + offset_tangent;
+        tangent.x = asfloat(vertices.Load(offset));
+        tangent.y = asfloat(vertices.Load(offset + size));
+        tangent.z = asfloat(vertices.Load(offset + size * 2));
+
+        float3 bitangent = cross(normal, tangent);
+
+        direction = tangent * direction.x + normal * direction.y + bitangent * direction.z;
+    }
 
     // Modify the vertex position
     vertex.xyz += direction * lerp(0, maxDeformation, w);
