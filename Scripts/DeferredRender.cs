@@ -6,20 +6,17 @@ using UnityEngine.Rendering;
 [RequireComponent(typeof(Camera))]
 internal class DeferredRender : MonoBehaviour
 {
-    [SerializeField]
-    private Capture m_mask;
+    private List<Capture> m_captures = new List<Capture>();
+    private Capture m_maskCapture;
 
     [SerializeField]
-    private Material m_maskMaterial;
+    private Material m_mask;
 
     [SerializeField]
     private Material m_blend;
 
     [SerializeField]
     private List<Material> m_materials;
-
-    [SerializeField]
-    private List<Capture> m_captures;
 
     [SerializeField]
     private Camera m_camera;
@@ -53,7 +50,7 @@ internal class DeferredRender : MonoBehaviour
             m_captures.Add(new Capture(m_camera, m_cull, filteredRenderers, material));
         }
 
-        m_mask = new Capture(m_camera, m_cull, filteredRenderers, m_maskMaterial);
+        m_maskCapture = new Capture(m_camera, m_cull, filteredRenderers, m_mask);
     }
 
     private bool blend = false;
@@ -67,7 +64,7 @@ internal class DeferredRender : MonoBehaviour
             m_captures[i].Update();
         }
 
-        m_mask.Update();
+        m_maskCapture.Update();
         blend = true;
     }
 
@@ -79,7 +76,7 @@ internal class DeferredRender : MonoBehaviour
             {
                 var capture = m_captures[i];
                 SetForeground(capture.texture);
-                SetMask(m_mask.texture, 1 - i % 2);
+                SetMask(m_maskCapture.texture, 1 - i % 2);
                 //if (i % 2 == 1 && false)
                 {
                 //    Blend(BlendMode.OneMinusSrcAlpha, BlendMode.SrcAlpha);

@@ -22,13 +22,13 @@ internal class Paint
         m_settings = settings;
 
         var resolution = m_settings.paint.GetResolution();
-        var read = new RenderTexture(resolution, resolution, 1, RenderTextureFormat.RGFloat);
+        var read = new RenderTexture(resolution, resolution, 1, RenderTextureFormat.RG16);
         read.enableRandomWrite = true;
 
-        var write = new RenderTexture(resolution, resolution, 1, RenderTextureFormat.RGFloat);
+        var write = new RenderTexture(resolution, resolution, 1, RenderTextureFormat.RG16);
         write.enableRandomWrite = true;
 
-        m_captureTexture = new RenderTexture(resolution, resolution, 1, RenderTextureFormat.RGFloat);
+        m_captureTexture = new RenderTexture(resolution, resolution, 1, RenderTextureFormat.RG16);
         m_captureTexture.enableRandomWrite = true;
 
         if (!read.Create())

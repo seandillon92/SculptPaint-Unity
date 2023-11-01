@@ -5,7 +5,6 @@ using UnityEngine;
 [Serializable]
 internal class Capture
 {
-    [SerializeField]
     internal RenderTexture texture;
 
     internal Material material;
