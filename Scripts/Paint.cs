@@ -11,6 +11,7 @@ internal class Paint
     private PingPongBuffer m_buffer;
 
     private Capture m_capture;
+    private RenderTexture m_captureTexture;
 
     internal Paint(Settings settings, List<MeshRenderer> renderer)
     {
@@ -21,17 +22,24 @@ internal class Paint
         m_settings = settings;
 
         var resolution = m_settings.paint.GetResolution();
-        var read = new RenderTexture(resolution, resolution, 1, RenderTextureFormat.RHalf);
+        var read = new RenderTexture(resolution, resolution, 1, RenderTextureFormat.RGFloat);
         read.enableRandomWrite = true;
 
-        var write = new RenderTexture(resolution, resolution, 1, RenderTextureFormat.RHalf);
+        var write = new RenderTexture(resolution, resolution, 1, RenderTextureFormat.RGFloat);
         write.enableRandomWrite = true;
+
+        m_captureTexture = new RenderTexture(resolution, resolution, 1, RenderTextureFormat.RGFloat);
+        m_captureTexture.enableRandomWrite = true;
 
         if (!read.Create())
         {
             throw new Exception("Could not create texture");
         }
         if (!write.Create())
+        {
+            throw new Exception("Could not create texture");
+        }
+        if (!m_captureTexture.Create())
         {
             throw new Exception("Could not create texture");
         }
@@ -46,27 +54,28 @@ internal class Paint
                 m_settings.paint.material);
     }
 
-    internal RenderTexture Write(Vector3 position)
+    internal RenderTexture Texture => m_buffer.write;
+
+    internal void Write(Vector3 position)
     {
         var material = m_settings.paint.material;
         material.SetVector("position", position);
 
         m_settings.paint.material.SetFloat("radius", 1.0f / m_settings.brush.size);
-        m_capture.Update(m_buffer.read);
 
-        m_shader.SetTexture(m_stamp, "Read", m_buffer.read);
+        m_capture.Update(m_captureTexture);
+
+        m_shader.SetTexture(m_stamp, "Read", m_captureTexture);
         m_shader.SetTexture(m_stamp, "Write", m_buffer.write);
-        m_shader.SetFloat("delay", m_settings.paint.delay);
+        m_shader.SetFloat("delay", m_settings.paint.delay * m_settings.paint.dissipation);
 
         m_shader.GetKernelThreadGroupSizes(m_stamp, out uint x, out uint y, out _);
         m_shader.Dispatch(m_stamp, (int)(m_buffer.read.width / x), (int)(m_buffer.read.height / y), 1);
-
-        return m_buffer.write;
     }
 
     internal void Update()
     {
-        return;
+        m_buffer.Swap();
         m_shader.SetTexture(m_dissipate, "Write", m_buffer.write);
         m_shader.SetTexture(m_dissipate, "Read", m_buffer.read);
 
@@ -74,7 +83,5 @@ internal class Paint
 
         m_shader.GetKernelThreadGroupSizes(m_dissipate, out uint x, out uint y, out _);
         m_shader.Dispatch(m_dissipate, (int)(m_buffer.read.width / x), (int)(m_buffer.read.height / y), 1);
-
-        m_buffer.Swap();
     }
 }

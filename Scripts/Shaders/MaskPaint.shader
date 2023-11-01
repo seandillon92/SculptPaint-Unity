@@ -52,10 +52,10 @@ Shader "Unlit/MaskPaint"
                 return o;
             }
 
-            fixed frag (v2f i) : SV_Target
+            fixed2 frag (v2f i) : SV_Target
             {
                 float dist = distance(position, i.worldPosition) * radius;
-                return saturate(1 - dist);
+                return fixed2(saturate(1 - dist), 0.0f);
             }
             ENDCG
         }

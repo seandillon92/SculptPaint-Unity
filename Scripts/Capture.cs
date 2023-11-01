@@ -79,9 +79,9 @@ internal class Capture
             m_renderers[i].sharedMaterial = m_cachedMaterials[i];
         }
 
-        //m_camera.cullingMask = prevCull;
-        //m_camera.clearFlags = prevClearFlag;
-        //m_camera.backgroundColor = prevBackgroundColor;
-        //m_camera.targetTexture = prevTarget;
+        m_camera.cullingMask = prevCull;
+        m_camera.clearFlags = prevClearFlag;
+        m_camera.backgroundColor = prevBackgroundColor;
+        m_camera.targetTexture = prevTarget;
     }
 }

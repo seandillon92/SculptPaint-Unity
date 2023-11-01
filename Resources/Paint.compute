@@ -5,8 +5,8 @@
 
 // Create a RenderTexture with enableRandomWrite flag and set it
 // with cs.SetTexture
-RWTexture2D<float> Write;
-Texture2D<float> Read;
+RWTexture2D<float2> Write;
+Texture2D<float2> Read;
 
 float pressure;
 float dissipation;
@@ -15,29 +15,26 @@ float delay;
 [numthreads(8,8,1)]
 void Dissipate(uint3 id : SV_DispatchThreadID)
 {
-    
-    float w = Read[id.xy].x;
-    if (w == 0)
+    half r = Read[id.xy];
+    if (r==0) 
+    {
+        Write[id.xy] = Read[id.xy];
         return;
-    w -= dissipation;
-    w = max(w, 0);
-   
-   Write[id.xy] = float4(w, 1 - w, 0, 0);
+    }
+    r -= dissipation;
+    r = max(r, 0);
+
+   Write[id.xy] = half2(r, 1 - r);
 }
 
 [numthreads(8, 8, 1)]
-void Stamp(uint3 id : SV_DispatchThreadID)
-{
+void Stamp(uint3 id : SV_DispatchThreadID) {
     float r = Read[id.xy];
     if (r == 0) 
     { 
         return;
     }
-
-    float w = Write[id.xy];
-
-    float base = saturate(r+w);
-    Write[id.xy] = base + delay;
+    Write[id.xy] = saturate(r) + delay;
 }
 
 

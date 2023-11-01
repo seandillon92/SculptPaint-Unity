@@ -40,7 +40,7 @@ internal class DeferredRender : MonoBehaviour
         {
             var renderer = renderers[i];
 
-            if((renderer.gameObject.layer & m_cull.value) != 0)
+            if( (1<<renderer.gameObject.layer & m_cull) != 0)
             {
                 filteredRenderers.Add(renderer);
             }
@@ -52,6 +52,8 @@ internal class DeferredRender : MonoBehaviour
             var material = m_materials[i];
             m_captures.Add(new Capture(m_camera, m_cull, filteredRenderers, material));
         }
+
+        m_mask = new Capture(m_camera, m_cull, filteredRenderers, m_maskMaterial);
     }
 
     private bool blend = false;
@@ -65,12 +67,7 @@ internal class DeferredRender : MonoBehaviour
             m_captures[i].Update();
         }
 
-        //m_mask.Update();
-        //m_foreground.Update();
-        //m_brush.Update();
-        //m_brushRender.Update();
-        //m_background.Update();
-
+        m_mask.Update();
         blend = true;
     }
 
@@ -82,21 +79,16 @@ internal class DeferredRender : MonoBehaviour
             {
                 var capture = m_captures[i];
                 SetForeground(capture.texture);
-                SetMask(m_mask.texture);
-                Blend(BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
+                SetMask(m_mask.texture, 1 - i % 2);
+                //if (i % 2 == 1 && false)
+                {
+                //    Blend(BlendMode.OneMinusSrcAlpha, BlendMode.SrcAlpha);
+                }
+                //else
+                {
+                    Blend(BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
+                }
             }
-            // Capture material 1 render
-            /*SetForeground(m_foreground.texture);
-            SetMask(m_mask.texture, 0);
-            Blend(BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
-
-            SetForeground(m_background.texture);
-            SetMask(m_mask.texture, 1);
-            Blend(BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
-
-            SetMask(m_brush.texture);
-            SetForeground(m_brushRender.texture);
-            Blend(BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);*/
         }
     }
 

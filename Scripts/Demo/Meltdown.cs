@@ -38,19 +38,16 @@ public class Meltdown : MonoBehaviour
             var ray = cam.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out var hit, Mathf.Infinity, m_layerMask))
             {
-                //Debug.LogFormat("Hit: {0}", hit.point);
-                //m_paint.Write(hit.point);
-                //RenderDocCapture.RunWithCapture(() => { 
-                var texture = m_paint.Write(hit.point);
-                m_renderer.sharedMaterial.SetTexture("_MainTex", texture);
 
+                //RenderDocCapture.RunWithCapture(() => { 
+                m_paint.Write(hit.point);
                 //}, 1);
 
             }
             //StartCoroutine(MeltDown());
         }
-
         m_paint.Update();
+        m_renderer.sharedMaterial.SetTexture("_MainTex", m_paint.Texture);
     }
 
     private IEnumerator MeltDown()
