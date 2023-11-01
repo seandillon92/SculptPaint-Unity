@@ -64,6 +64,6 @@ internal class Control
         var t = m_settings.control.distance;
         var distance = Mathf.Lerp(m_settings.control.distanceMin, m_settings.control.distanceMax, t);
         m_transform.position =
-            m_settings.mask.camera.transform.position + m_settings.mask.camera.transform.forward * distance;
+            m_settings.paint.camera.transform.position + m_settings.paint.camera.transform.forward * distance;
     }
 }

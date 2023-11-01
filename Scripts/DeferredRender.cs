@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -9,19 +10,16 @@ internal class DeferredRender : MonoBehaviour
     private Capture m_mask;
 
     [SerializeField]
-    private Capture m_brush;
-
-    [SerializeField]
-    private Capture m_foreground;
-
-    [SerializeField]
-    private Capture m_background;
-
-    [SerializeField]
-    private Capture m_brushRender;
+    private Material m_maskMaterial;
 
     [SerializeField]
     private Material m_blend;
+
+    [SerializeField]
+    private List<Material> m_materials;
+
+    [SerializeField]
+    private List<Capture> m_captures;
 
     [SerializeField]
     private Camera m_camera;
@@ -36,11 +34,24 @@ internal class DeferredRender : MonoBehaviour
 
     public void Start()
     {
-        m_mask.Init(m_camera, m_cull);
-        m_foreground.Init(m_camera, m_cull);
-        m_brush.Init(m_camera, m_cull);
-        m_brushRender.Init(m_camera, m_cull);
-        m_background.Init(m_camera, m_cull);
+        var renderers = FindObjectsOfType<MeshRenderer>();
+        var filteredRenderers = new List<MeshRenderer>();
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            var renderer = renderers[i];
+
+            if((renderer.gameObject.layer & m_cull.value) != 0)
+            {
+                filteredRenderers.Add(renderer);
+            }
+        }
+
+        m_captures.Clear();
+        for (int i = 0; i < m_materials.Count; i++)
+        {
+            var material = m_materials[i];
+            m_captures.Add(new Capture(m_camera, m_cull, filteredRenderers, material));
+        }
     }
 
     private bool blend = false;
@@ -49,12 +60,17 @@ internal class DeferredRender : MonoBehaviour
     {
         blend = false;
 
-        m_mask.Update();
-        m_foreground.Update();
-        m_brush.Update();
-        m_brushRender.Update();
-        m_background.Update();
-        
+        for (int i = 0; i < m_materials.Count; i++)
+        {
+            m_captures[i].Update();
+        }
+
+        //m_mask.Update();
+        //m_foreground.Update();
+        //m_brush.Update();
+        //m_brushRender.Update();
+        //m_background.Update();
+
         blend = true;
     }
 
@@ -62,8 +78,15 @@ internal class DeferredRender : MonoBehaviour
     {
         if (blend)
         {
+            for (int i = 0; i < m_captures.Count; i++)
+            {
+                var capture = m_captures[i];
+                SetForeground(capture.texture);
+                SetMask(m_mask.texture);
+                Blend(BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
+            }
             // Capture material 1 render
-            SetForeground(m_foreground.texture);
+            /*SetForeground(m_foreground.texture);
             SetMask(m_mask.texture, 0);
             Blend(BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
 
@@ -73,7 +96,7 @@ internal class DeferredRender : MonoBehaviour
 
             SetMask(m_brush.texture);
             SetForeground(m_brushRender.texture);
-            Blend(BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
+            Blend(BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);*/
         }
     }
 

@@ -29,10 +29,15 @@ void Dissipate(uint3 id : SV_DispatchThreadID)
 void Stamp(uint3 id : SV_DispatchThreadID)
 {
     float r = Read[id.xy];
+    if (r == 0) 
+    { 
+        return;
+    }
+
     float w = Write[id.xy];
 
-
-    Write[id.xy] = saturate(r + w);
+    float base = saturate(r+w);
+    Write[id.xy] = base + delay;
 }
 
 

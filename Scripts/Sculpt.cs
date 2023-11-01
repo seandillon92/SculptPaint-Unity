@@ -63,7 +63,7 @@ internal class Sculpt
 
         m_shader.SetMatrix(m_MVP, mvp);
         m_shader.SetVector(m_direction, direction);
-        var input = m_settings.mask.camera.ScreenToViewportPoint(screenPos);
+        var input = m_settings.paint.camera.ScreenToViewportPoint(screenPos);
         var position = new Vector2(input.x, input.y);
         m_shader.SetVector("mousePos", position);
         m_shader.SetFloat("aspect", m_settings.sculpt.camera.aspect);

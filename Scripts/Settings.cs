@@ -1,5 +1,8 @@
+using PlasticGui.WorkspaceWindow.Merge;
 using System;
+using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 [Serializable]
 internal class Settings
@@ -11,10 +14,21 @@ internal class Settings
     internal ControlSettings control;
 
     [SerializeField]
-    internal MaskSettings mask;
+    internal PaintSettings paint;
 
     [SerializeField]
     internal SculptSettings sculpt;
+
+    internal enum Resolution
+    {
+        None = 0,
+        R128 = 128,
+        R256 = 256,
+        R512 = 512,
+        R1024 = 1024,
+        R2048 = 2048,
+        R4096 = 4096,
+    }
 }
 
 [Serializable]
@@ -66,7 +80,7 @@ internal class BrushSettings
 }
 
 [Serializable]
-internal class MaskSettings
+internal class PaintSettings
 {
     [SerializeField]
     internal float dissipation = 0.1f;
@@ -84,7 +98,9 @@ internal class MaskSettings
     internal Material material;
 
     [SerializeField]
-    internal Capture capture;
+    private Settings.Resolution resolution;
+
+    internal int GetResolution() => (int)resolution;
 }
 
 [Serializable]

@@ -1,26 +1,30 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
-internal class Mask
+internal class Paint
 {
     private ComputeShader m_shader;
-    private int m_writeKernel;
-    private int m_updateKernel;
+    private int m_dissipate;
+    private int m_stamp;
+
     private Settings m_settings;
     private PingPongBuffer m_buffer;
 
-    internal Mask(Settings settings)
+    private Capture m_capture;
+
+    internal Paint(Settings settings, List<MeshRenderer> renderer)
     {
-        m_shader = Resources.Load<ComputeShader>("Mask");
-        m_writeKernel = m_shader.FindKernel("WriteMask");
-        m_updateKernel = m_shader.FindKernel("UpdateMask");
+        m_shader = Resources.Load<ComputeShader>("Paint");
+        m_dissipate = m_shader.FindKernel("Dissipate");
+        m_stamp = m_shader.FindKernel("Stamp");
+
         m_settings = settings;
 
-        m_settings.mask.capture.Init(m_settings.mask.camera, m_settings.mask.layer);
-
-        var read = new RenderTexture(2048, 2048, 1, RenderTextureFormat.ARGBHalf);
+        var resolution = m_settings.paint.GetResolution();
+        var read = new RenderTexture(resolution, resolution, 1, RenderTextureFormat.RHalf);
         read.enableRandomWrite = true;
 
-        var write = new RenderTexture(2048, 2048, 1, RenderTextureFormat.ARGBHalf);
+        var write = new RenderTexture(resolution, resolution, 1, RenderTextureFormat.RHalf);
         write.enableRandomWrite = true;
 
         if (!read.Create())
@@ -33,31 +37,43 @@ internal class Mask
         }
 
         m_buffer = new PingPongBuffer(read, write);
+
+        m_capture = 
+            new Capture(
+                m_settings.paint.camera, 
+                m_settings.paint.layer, 
+                renderer, 
+                m_settings.paint.material);
     }
 
-    internal void Write(Texture capture)
+    internal RenderTexture Write(Vector3 position)
     {
-        m_shader.SetFloat("delay", m_settings.mask.delay);
-        m_shader.SetTexture(m_writeKernel, "Write", m_buffer.read);
-        m_shader.SetTexture(m_writeKernel, "Read1", capture);
+        var material = m_settings.paint.material;
+        material.SetVector("position", position);
 
-        m_shader.SetFloat("pressure", m_settings.brush.pressure * Time.deltaTime);
-        m_shader.GetKernelThreadGroupSizes(m_writeKernel, out uint x, out uint y, out _);
-        m_shader.Dispatch(
-            m_writeKernel,
-            (int)(m_settings.mask.capture.texture.width / x),
-            (int)(m_settings.mask.capture.texture.height / y), 1);
+        m_settings.paint.material.SetFloat("radius", 1.0f / m_settings.brush.size);
+        m_capture.Update(m_buffer.read);
+
+        m_shader.SetTexture(m_stamp, "Read", m_buffer.read);
+        m_shader.SetTexture(m_stamp, "Write", m_buffer.write);
+        m_shader.SetFloat("delay", m_settings.paint.delay);
+
+        m_shader.GetKernelThreadGroupSizes(m_stamp, out uint x, out uint y, out _);
+        m_shader.Dispatch(m_stamp, (int)(m_buffer.read.width / x), (int)(m_buffer.read.height / y), 1);
+
+        return m_buffer.write;
     }
 
     internal void Update()
     {
-        m_shader.SetTexture(m_updateKernel, "Write", m_buffer.write);
-        m_shader.SetTexture(m_updateKernel, "Read1", m_buffer.read);
-        m_shader.GetKernelThreadGroupSizes(m_updateKernel, out uint x, out uint y, out _);
-        m_shader.Dispatch(m_updateKernel, (int)(m_buffer.read.width / x), (int)(m_buffer.read.height / y), 1);
+        return;
+        m_shader.SetTexture(m_dissipate, "Write", m_buffer.write);
+        m_shader.SetTexture(m_dissipate, "Read", m_buffer.read);
 
-        m_shader.SetFloat("dissipation", Time.deltaTime * m_settings.mask.dissipation);
-        m_settings.mask.material.SetTexture("_MainTex", m_buffer.write);
+        m_shader.SetFloat("dissipation", Time.deltaTime * m_settings.paint.dissipation);
+
+        m_shader.GetKernelThreadGroupSizes(m_dissipate, out uint x, out uint y, out _);
+        m_shader.Dispatch(m_dissipate, (int)(m_buffer.read.width / x), (int)(m_buffer.read.height / y), 1);
 
         m_buffer.Swap();
     }

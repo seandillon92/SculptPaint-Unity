@@ -17,11 +17,11 @@ internal class Brush
 
     private void UpdateBrush()
     {
-        var input = m_settings.mask.camera.ScreenToViewportPoint(Input.mousePosition);
+        var input = m_settings.paint.camera.ScreenToViewportPoint(Input.mousePosition);
         var position = new Vector2(input.x, input.y);
         m_settings.brush.material.SetVector("mousePos", position);
 
-        var aspect = m_settings.mask.camera.aspect;
+        var aspect = m_settings.paint.camera.aspect;
         m_settings.brush.material.SetFloat("aspect", aspect);
         var brush = m_settings.brush;
         var control = m_settings.control;
