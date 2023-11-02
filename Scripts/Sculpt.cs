@@ -8,14 +8,14 @@ internal class Sculpt
     private int m_kernel;
     private int m_threadGroupX;
     private Mesh m_mesh;
-    private int m_MVP;
+    private int m_model;
     private int m_direction;
     internal Sculpt(Settings settings)
     {
         m_settings = settings;
         m_shader = Resources.Load<ComputeShader>("Sculpt");
         m_kernel = m_shader.FindKernel("Update");
-        m_MVP = Shader.PropertyToID("mvp");
+        m_model = Shader.PropertyToID("mvp");
         m_direction = Shader.PropertyToID("direction");
 
 
@@ -44,8 +44,9 @@ internal class Sculpt
     }
 
     internal void Update(
-        Matrix4x4 mvp,
-        Vector3 screenPos, 
+        Matrix4x4 model,
+        Vector3 position,
+        Vector3 normal,
         float deformation)
     {
         var direction = m_settings.sculpt.direction;
@@ -61,13 +62,23 @@ internal class Sculpt
 
         direction *= Time.deltaTime * m_settings.sculpt.strength;
 
-        m_shader.SetMatrix(m_MVP, mvp);
+        m_shader.SetMatrix(m_model, model);
         m_shader.SetVector(m_direction, direction);
-        var input = m_settings.paint.camera.ScreenToViewportPoint(screenPos);
-        var position = new Vector2(input.x, input.y);
-        m_shader.SetVector("mousePos", position);
-        m_shader.SetFloat("aspect", m_settings.sculpt.camera.aspect);
-        m_shader.SetFloat("brushSize", 1.0f / m_settings.brush.size);
+
+        var ortho = Quaternion.Euler(0, 0, m_settings.brush.rotation) * Vector3.up;
+        if (normal == ortho)
+        {
+            ortho = new Vector3(ortho.y, -ortho.x, 0);
+        }
+
+        Vector3 tangent = Vector3.Cross(normal, ortho);
+        Vector3 bitangent = Vector3.Cross(tangent, normal);
+
+        m_shader.SetVector("position", position);
+        m_shader.SetVector("tangent", tangent);
+        m_shader.SetMatrix("model", model);
+        m_shader.SetVector("bitangent", bitangent);
+        m_shader.SetFloat("radius", 1.0f / m_settings.brush.size);
         m_shader.SetFloat("maxDeformation", deformation);
         m_shader.SetVector(m_direction, direction);
         var maxThreadSize = 65535;

@@ -26,7 +26,7 @@ public class Meltdown : MonoBehaviour
         m_paint = new Paint(m_settings, new List<MeshRenderer>() { m_renderer });
 
         m_brush = new Brush(m_settings);
-        //m_sculpt = new Sculpt(m_settings);
+        m_sculpt = new Sculpt(m_settings);
         m_control = new Control(m_settings);
     }
 
@@ -43,36 +43,33 @@ public class Meltdown : MonoBehaviour
             {
                 //RenderDocCapture.RunWithCapture(() => { 
                 m_paint.Write(hit.point, hit.normal);
-               // }, 1);
+                // }, 1);
+                StartCoroutine(MeltDown(hit.point, hit.normal));
 
             }
-            //StartCoroutine(MeltDown());
         }
         m_paint.Update();
         m_maskMaterial.SetTexture("_MainTex", m_paint.Texture);
     }
 
-    private IEnumerator MeltDown()
+    private IEnumerator MeltDown(Vector3 position, Vector3 normal)
     {
-        yield return MeltGeometry();
+        yield return MeltGeometry(position, normal);
     }
 
-    private IEnumerator MeltGeometry()
+    private IEnumerator MeltGeometry(Vector3 position, Vector3 normal)
     {
         var timer = 0.0f;
         var maxTime = m_settings.paint.delay;
-        var position = Input.mousePosition;
 
         var model = m_settings.sculpt.mesh.transform.localToWorldMatrix;
-        var view = m_settings.sculpt.camera.worldToCameraMatrix;
-        var projection = m_settings.sculpt.camera.projectionMatrix;
-        var mvp = projection * view * model;
 
         while (timer < maxTime)
         {
             m_sculpt.Update(
-                mvp: mvp,
+                model,
                 position,
+                normal,
                 deformation: 0.0001f * Time.deltaTime);
 
             yield return null;

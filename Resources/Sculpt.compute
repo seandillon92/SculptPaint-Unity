@@ -15,8 +15,10 @@ uint iteration;
 
 float4x4 model;
 float3 position;
-float aspect;
-float brushSize;
+float3 tangent;
+float3 bitangent;
+float radius;
+
 float maxDeformation;
 
 float3 direction;
@@ -28,6 +30,10 @@ uint space;
 
 Texture2D brushTexture;
 SamplerState linearClamp;
+
+float3 project(float3 a, float3 b) {
+    return b * (dot(a, b) / dot(b, b));
+}
 
 [numthreads(1, 1, 1)]
 void Update (uint3 id : SV_DispatchThreadID) {
@@ -46,15 +52,17 @@ void Update (uint3 id : SV_DispatchThreadID) {
     vertex.z = asfloat(z);
     vertex.w = 1.0f;
 
+    float3 worldPosition = mul(model, vertex);
 
-    float4 projected = ComputeScreenPos(mul(mvp, vertex));
-    projected.xyz /= projected.w;
+    float3 diff = (position - worldPosition) * radius;
+    float3 tangentProj = project(diff, tangent);
+    float3 bitangentProj = project(diff, bitangent);
+    float2 uv = float2(-dot(tangent, tangentProj), -dot(bitangent, bitangentProj)) + float2(0.5, 0.5);
+    if (uv.x > 1 || uv.y > 1 || uv.x < 0 || uv.y < 0) {
+        return;
+    }
 
-    float2 distance = mousePos - projected.xy;
-    distance.x *= aspect;
-
-    float2 coords = distance * brushSize + float2(0.5, 0.5);
-    float w = brushTexture.SampleLevel(linearClamp, coords, 0, 0).a;
+    float w = brushTexture.SampleLevel(linearClamp, uv, 0, 0).a;
 
     if (space == 2) //normal space
     {
