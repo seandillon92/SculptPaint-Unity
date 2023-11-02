@@ -15,7 +15,7 @@ float delay;
 [numthreads(8,8,1)]
 void Dissipate(uint3 id : SV_DispatchThreadID)
 {
-    half r = Read[id.xy];
+    float r = Read[id.xy];
     if (r==0) 
     {
         Write[id.xy] = Read[id.xy];
@@ -24,7 +24,7 @@ void Dissipate(uint3 id : SV_DispatchThreadID)
     r -= dissipation;
     r = max(r, 0);
 
-   Write[id.xy] = half2(r, 1 - r);
+   Write[id.xy] = float2(r, 1 - r);
 }
 
 [numthreads(8, 8, 1)]
