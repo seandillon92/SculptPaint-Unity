@@ -65,7 +65,13 @@ internal class Paint
 
         m_settings.paint.material.SetFloat("radius", 1.0f / m_settings.brush.size);
 
-        Vector3 tangent = normal == Vector3.up ? Vector3.Cross(normal, Vector3.right) : Vector3.Cross(normal, Vector3.up);
+        var ortho = Quaternion.Euler(0,0,m_settings.brush.rotation) * Vector3.up;
+        if (normal == ortho)
+        {
+            ortho = new Vector3(ortho.y, -ortho.x,0);
+        }
+
+        Vector3 tangent = Vector3.Cross(normal, ortho);
         Vector3 bitangent = Vector3.Cross(tangent, normal);
 
         m_settings.paint.material.SetVector("tangent", tangent.normalized);

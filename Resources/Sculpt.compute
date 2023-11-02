@@ -13,8 +13,8 @@ uint offset_tangent;
 uint iteration_offset;
 uint iteration;
 
-float4x4 mvp;
-float2 mousePos;
+float4x4 model;
+float3 position;
 float aspect;
 float brushSize;
 float maxDeformation;

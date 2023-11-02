@@ -74,6 +74,9 @@ internal class BrushSettings
 
     [SerializeField]
     internal Texture texture;
+
+    [SerializeField]
+    internal float rotation = 0f;
 }
 
 [Serializable]
