@@ -15,6 +15,9 @@ public class Meltdown : MonoBehaviour
     [SerializeField]
     private LayerMask m_layerMask;
 
+    [SerializeField]
+    private Material m_maskMaterial;
+
     private MeshRenderer m_renderer;
 
     private void Start()
@@ -38,16 +41,15 @@ public class Meltdown : MonoBehaviour
             var ray = cam.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out var hit, Mathf.Infinity, m_layerMask))
             {
-
                 //RenderDocCapture.RunWithCapture(() => { 
-                m_paint.Write(hit.point);
-                //}, 1);
+                m_paint.Write(hit.point, hit.normal);
+               // }, 1);
 
             }
             //StartCoroutine(MeltDown());
         }
         m_paint.Update();
-        m_renderer.sharedMaterial.SetTexture("_MainTex", m_paint.Texture);
+        m_maskMaterial.SetTexture("_MainTex", m_paint.Texture);
     }
 
     private IEnumerator MeltDown()

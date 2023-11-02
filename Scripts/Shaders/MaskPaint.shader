@@ -27,6 +27,9 @@ Shader "Unlit/MaskPaint"
 
             uniform float3 position;
             uniform float radius;
+            uniform sampler2D _MainTex;
+            uniform float3 tangent;
+            uniform float3 bitangent;
 
             struct appdata
             {
@@ -36,7 +39,6 @@ Shader "Unlit/MaskPaint"
 
             struct v2f
             {
-                float2 uv : TEXCOORD0;
                 UNITY_FOG_COORDS(1)
                 float4 vertex : SV_POSITION;
                 float3 worldPosition : POSITION1;
@@ -46,16 +48,26 @@ Shader "Unlit/MaskPaint"
             {
                 v2f o;
                 o.vertex = float4(v.uv.x *2.0f - 1.0f, (1 - v.uv.y) * 2.0f - 1.0f, 0.0f, 1.0f);
-                o.uv = v.uv;
                 o.worldPosition = mul(unity_ObjectToWorld, v.vertex);
                 UNITY_TRANSFER_FOG(o,o.vertex);
                 return o;
             }
 
-            fixed2 frag (v2f i) : SV_Target
+            float3 project(float3 a, float3 b){
+                return b * (dot(a, b) / dot(b,b));
+            }
+
+            fixed frag (v2f i) : SV_Target
             {
-                float dist = distance(position, i.worldPosition) * radius;
-                return fixed2(saturate(1 - dist), 0.0f);
+                float3 diff = (position - i.worldPosition) * radius;
+                float3 tangentProj = project(diff, tangent);
+                float3 bitangentProj = project(diff, bitangent);
+                float2 uv = float2(-dot(tangent, tangentProj), -dot(bitangent, bitangentProj)) + float2(0.5,0.5);
+                if( uv.x > 1 || uv.y > 1 || uv.x < 0 || uv.y < 0)
+                { 
+                    return 0.0f;
+                }
+                return tex2D(_MainTex, uv).a;
             }
             ENDCG
         }

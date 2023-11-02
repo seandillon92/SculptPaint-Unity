@@ -73,9 +73,6 @@ internal class BrushSettings
     internal float pressure = 0.1f;
 
     [SerializeField]
-    internal Material material;
-
-    [SerializeField]
     internal Texture texture;
 }
 
