@@ -63,13 +63,14 @@ public class Meltdown : MonoBehaviour
         var maxTime = m_settings.paint.delay;
 
         var model = m_settings.sculpt.mesh.transform.localToWorldMatrix;
-
+        var brushSize = m_settings.brush.size;
         while (timer < maxTime)
         {
             m_sculpt.Update(
                 model,
                 position,
                 normal,
+                brushSize,
                 deformation: 0.0001f * Time.deltaTime);
 
             yield return null;

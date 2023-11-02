@@ -47,6 +47,7 @@ internal class Sculpt
         Matrix4x4 model,
         Vector3 position,
         Vector3 normal,
+        float brushSize,
         float deformation)
     {
         var direction = m_settings.sculpt.direction;
@@ -78,7 +79,7 @@ internal class Sculpt
         m_shader.SetVector("tangent", tangent);
         m_shader.SetMatrix("model", model);
         m_shader.SetVector("bitangent", bitangent);
-        m_shader.SetFloat("radius", 1.0f / m_settings.brush.size);
+        m_shader.SetFloat("radius", 1.0f / brushSize);
         m_shader.SetFloat("maxDeformation", deformation);
         m_shader.SetVector(m_direction, direction);
         var maxThreadSize = 65535;
