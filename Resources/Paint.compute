@@ -29,8 +29,21 @@ void Dissipate(uint3 id : SV_DispatchThreadID)
 
 [numthreads(8, 8, 1)]
 void Stamp(uint3 id : SV_DispatchThreadID) {
-    float r = Read[id.xy];
-    if (r == 0) 
+    // take neighbour values into account to battle rasterization
+    // artefact
+    float read = Read[id.xy];
+    float t = Read[id.xy + float2(0, 1)];
+    float b = Read[id.xy - float2(0, 1)];
+    float l = Read[id.xy - float2(1, 0)];
+    float r = Read[id.xy + float2(1, 0)];
+    float tr = Read[id.xy + float2(1,1)];
+    float tl = Read[id.xy + float2(-1, 1)];
+    float br = Read[id.xy + float2(1, -1)];
+    float bl = Read[id.xy + float2(-1, -1)];
+
+    float maxValue = max(max(max(max(t,b), l),t), read);
+    maxValue = max(maxValue, max(tr, max(tl, max(br,bl))));
+    if (maxValue == 0) 
     { 
         return;
     }
