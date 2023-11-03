@@ -63,7 +63,9 @@ internal class Paint
         var material = m_settings.paint.material;
         material.SetVector("position", position);
 
-        m_settings.paint.material.SetFloat("radius", scale.magnitude / m_settings.brush.size);
+        m_settings.paint.material.SetFloat("radius", 1.0f / m_settings.brush.size);
+        m_settings.paint.material.SetVector("scale", scale);
+        m_settings.paint.material.SetFloat("aspect", m_settings.brush.texture.width / ((float)m_settings.brush.texture.height));
 
         m_capture.Update(m_captureTexture);
 

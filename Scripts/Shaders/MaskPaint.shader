@@ -28,6 +28,8 @@ Shader "Unlit/MaskPaint"
             uniform float3 position;
             uniform float radius;
             uniform sampler2D _MainTex;
+            uniform float aspect;
+            uniform float3 scale;
 
             struct appdata
             {
@@ -53,7 +55,7 @@ Shader "Unlit/MaskPaint"
                 o.vertex = float4(v.uv.x *2.0f - 1.0f, (1 - v.uv.y) * 2.0f - 1.0f, 0.0f, 1.0f);
                 o.position = v.vertex;
                 o.normal = v.normal;
-                o.tangent = v.tangent;
+                o.tangent = v.tangent.xyz * v.tangent.w;
                 o.bitangent = normalize(cross(o.normal, o.tangent));
                 UNITY_TRANSFER_FOG(o,o.vertex);
                 return o;
@@ -65,16 +67,26 @@ Shader "Unlit/MaskPaint"
 
             fixed frag (v2f i) : SV_Target
             {
-                float3 diff = (position - i.position);
-                float3 scaledDiff = (position - i.position) * radius;
-                float scaledDistance = length(scaledDiff);
-                float3 tangentProj = project(scaledDiff, i.tangent);
-                float3 bitangentProj = project(scaledDiff, i.bitangent);
-                float2 uv = float2(-dot(i.tangent, tangentProj), -dot(i.bitangent, bitangentProj)) + float2(0.5,0.5);
-                if( uv.x > 1 || uv.y > 1 || uv.x < 0 || uv.y < 0 || scaledDistance > 0.5)
+                float3 difference = position - i.position;
+
+                if ( length(difference) >  (1.0f / scale.x) * (1.0f / radius)){
+                    return 0.0f;
+                }
+
+                float3 scaledDifference = difference * radius * scale.x;
+
+                float3 tangentProj = project(scaledDifference, i.tangent);
+                float3 bitangentProj = project(scaledDifference, i.bitangent);
+                float2 uv = float2(-dot(i.tangent, tangentProj), -dot(i.bitangent, bitangentProj));
+
+                uv.y *= aspect;
+                uv += float2(0.5,0.5);
+                
+                if ( uv.x > 1 || uv.y > 1 || uv.x < 0 || uv.y < 0)
                 { 
                     return 0.0f;
                 }
+
                 return tex2D(_MainTex, uv).a;
             }
             ENDCG
