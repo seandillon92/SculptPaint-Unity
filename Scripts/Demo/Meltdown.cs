@@ -41,7 +41,8 @@ public class Meltdown : MonoBehaviour
             var ray = cam.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out var hit, Mathf.Infinity, m_layerMask))
             {
-                m_paint.Write(hit.point, hit.normal);
+                var point =  hit.transform.InverseTransformPoint(hit.point);
+                m_paint.Write(point, transform.lossyScale);
                 StartCoroutine(MeltDown(hit.point, hit.normal));
             }
         }

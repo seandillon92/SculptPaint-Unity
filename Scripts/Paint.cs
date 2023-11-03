@@ -58,24 +58,12 @@ internal class Paint
 
     internal RenderTexture Texture => m_buffer.write;
 
-    internal void Write(Vector3 position, Vector3 normal)
+    internal void Write(Vector3 position, Vector3 scale)
     {
         var material = m_settings.paint.material;
         material.SetVector("position", position);
 
-        m_settings.paint.material.SetFloat("radius", 1.0f / m_settings.brush.size);
-
-        var ortho = Quaternion.Euler(0,0,m_settings.brush.rotation) * Vector3.up;
-        if (normal == ortho)
-        {
-            ortho = new Vector3(ortho.y, -ortho.x,0);
-        }
-
-        Vector3 tangent = Vector3.Cross(normal, ortho);
-        Vector3 bitangent = Vector3.Cross(tangent, normal);
-
-        m_settings.paint.material.SetVector("tangent", tangent.normalized);
-        m_settings.paint.material.SetVector("bitangent", bitangent.normalized);
+        m_settings.paint.material.SetFloat("radius", scale.magnitude / m_settings.brush.size);
 
         m_capture.Update(m_captureTexture);
 

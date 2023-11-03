@@ -28,27 +28,33 @@ Shader "Unlit/MaskPaint"
             uniform float3 position;
             uniform float radius;
             uniform sampler2D _MainTex;
-            uniform float3 tangent;
-            uniform float3 bitangent;
 
             struct appdata
             {
                 float4 vertex : POSITION;
                 float2 uv : TEXCOORD0;
+                float3 normal: NORMAL;
+                float4 tangent: TANGENT;
             };
 
             struct v2f
             {
                 UNITY_FOG_COORDS(1)
                 float4 vertex : SV_POSITION;
-                float3 worldPosition : POSITION1;
+                float3 position : POSITION1;
+                float3 normal: NORMAL;
+                float3 tangent: TANGENT;
+                float3 bitangent: TANGENT1;
             };
 
             v2f vert (appdata v)
             {
                 v2f o;
                 o.vertex = float4(v.uv.x *2.0f - 1.0f, (1 - v.uv.y) * 2.0f - 1.0f, 0.0f, 1.0f);
-                o.worldPosition = mul(unity_ObjectToWorld, v.vertex);
+                o.position = v.vertex;
+                o.normal = v.normal;
+                o.tangent = v.tangent;
+                o.bitangent = normalize(cross(o.normal, o.tangent));
                 UNITY_TRANSFER_FOG(o,o.vertex);
                 return o;
             }
@@ -59,11 +65,13 @@ Shader "Unlit/MaskPaint"
 
             fixed frag (v2f i) : SV_Target
             {
-                float3 diff = (position - i.worldPosition) * radius;
-                float3 tangentProj = project(diff, tangent);
-                float3 bitangentProj = project(diff, bitangent);
-                float2 uv = float2(-dot(tangent, tangentProj), -dot(bitangent, bitangentProj)) + float2(0.5,0.5);
-                if( uv.x > 1 || uv.y > 1 || uv.x < 0 || uv.y < 0)
+                float3 diff = (position - i.position);
+                float3 scaledDiff = (position - i.position) * radius;
+                float scaledDistance = length(scaledDiff);
+                float3 tangentProj = project(scaledDiff, i.tangent);
+                float3 bitangentProj = project(scaledDiff, i.bitangent);
+                float2 uv = float2(-dot(i.tangent, tangentProj), -dot(i.bitangent, bitangentProj)) + float2(0.5,0.5);
+                if( uv.x > 1 || uv.y > 1 || uv.x < 0 || uv.y < 0 || scaledDistance > 0.5)
                 { 
                     return 0.0f;
                 }
