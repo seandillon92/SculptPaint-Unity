@@ -42,7 +42,11 @@ public class Meltdown : MonoBehaviour
             if (Physics.Raycast(ray, out var hit, Mathf.Infinity, m_layerMask))
             {
                 var point =  hit.transform.InverseTransformPoint(hit.point);
-                m_paint.Write(point, transform.lossyScale);
+                var normal = hit.transform.InverseTransformDirection(hit.normal);
+                //RenderDocCapture.RunWithCapture(() =>
+                //{
+                    m_paint.Write(point, normal, transform.lossyScale);
+                //}, 1);
                 StartCoroutine(MeltDown(hit.point, hit.normal));
             }
         }

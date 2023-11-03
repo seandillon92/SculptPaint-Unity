@@ -1,8 +1,5 @@
-using PlasticGui.WorkspaceWindow.Merge;
 using System;
-using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 [Serializable]
 internal class Settings
@@ -77,6 +74,15 @@ internal class BrushSettings
 
     [SerializeField]
     internal float rotation = 0f;
+
+    [SerializeField]
+    internal ProjectionType projection;
+
+    internal enum ProjectionType
+    {
+        LocalTangent = 0,
+        GlobalTangent = 1,
+    }
 }
 
 [Serializable]

@@ -23,6 +23,8 @@ Shader "Unlit/MaskPaint"
             #pragma multi_compile_fog
             #pragma enable_d3d11_debug_symbols
 
+            #define SQRT_1_DIV_2 0.70710678118
+
             #include "UnityCG.cginc"
 
             uniform float3 position;
@@ -30,6 +32,14 @@ Shader "Unlit/MaskPaint"
             uniform sampler2D _MainTex;
             uniform float aspect;
             uniform float3 scale;
+
+            uniform float3 tangent;
+            uniform float3 bitangent;
+            uniform float3 normal;
+
+            // 0 - tangent local
+            // 1 - tangent global
+            uniform int space;
 
             struct appdata
             {
@@ -44,9 +54,7 @@ Shader "Unlit/MaskPaint"
                 UNITY_FOG_COORDS(1)
                 float4 vertex : SV_POSITION;
                 float3 position : POSITION1;
-                float3 normal: NORMAL;
-                float3 tangent: TANGENT;
-                float3 bitangent: TANGENT1;
+                float3x3 transform : POSITION2;
             };
 
             v2f vert (appdata v)
@@ -54,34 +62,36 @@ Shader "Unlit/MaskPaint"
                 v2f o;
                 o.vertex = float4(v.uv.x *2.0f - 1.0f, (1 - v.uv.y) * 2.0f - 1.0f, 0.0f, 1.0f);
                 o.position = v.vertex;
-                o.normal = v.normal;
-                o.tangent = v.tangent.xyz * v.tangent.w;
-                o.bitangent = normalize(cross(o.normal, o.tangent));
+
+                if (space == 0) {
+                    float3 tangent = normalize(v.tangent.xyz);
+                    float3 bitangent = normalize(cross(v.normal, tangent) * v.tangent.w);
+                    o.transform = float3x3(tangent, bitangent, v.normal);
+                }
+                else if (space == 1) 
+                { 
+                    o.transform = float3x3(tangent, bitangent, normal);
+                }
+
+
                 UNITY_TRANSFER_FOG(o,o.vertex);
                 return o;
             }
 
-            float3 project(float3 a, float3 b){
-                return b * (dot(a, b) / dot(b,b));
-            }
-
             fixed frag (v2f i) : SV_Target
             {
-                float3 difference = position - i.position;
 
-                if ( length(difference) >  (1.0f / scale.x) * (1.0f / radius)){
+                float3 difference = (position - i.position) * scale.x * radius;
+
+                if ( length(difference) > SQRT_1_DIV_2){
                     return 0.0f;
                 }
 
-                float3 scaledDifference = difference * radius * scale.x;
-
-                float3 tangentProj = project(scaledDifference, i.tangent);
-                float3 bitangentProj = project(scaledDifference, i.bitangent);
-                float2 uv = float2(-dot(i.tangent, tangentProj), -dot(i.bitangent, bitangentProj));
-
+                float3 projected = mul(i.transform, difference);
+                float2 uv = projected.xy;
                 uv.y *= aspect;
-                uv += float2(0.5,0.5);
-                
+                uv += float2(0.5, 0.5);
+
                 if ( uv.x > 1 || uv.y > 1 || uv.x < 0 || uv.y < 0)
                 { 
                     return 0.0f;

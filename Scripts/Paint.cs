@@ -58,10 +58,18 @@ internal class Paint
 
     internal RenderTexture Texture => m_buffer.write;
 
-    internal void Write(Vector3 position, Vector3 scale)
+    internal void Write(Vector3 position, Vector3 normal, Vector3 scale)
     {
         var material = m_settings.paint.material;
         material.SetVector("position", position);
+        material.SetVector("normal", normal.normalized);
+
+        var tangent = Vector3.Cross(normal, Vector3.up);
+        var bitangent = Vector3.Cross(normal, tangent);
+        material.SetVector("tangent", tangent.normalized);
+        material.SetVector("bitangent", bitangent.normalized);
+
+        material.SetInt("space", (int)m_settings.brush.projection);
 
         m_settings.paint.material.SetFloat("radius", 1.0f / m_settings.brush.size);
         m_settings.paint.material.SetVector("scale", scale);
