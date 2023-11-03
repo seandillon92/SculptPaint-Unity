@@ -3,13 +3,15 @@ using UnityEngine.Rendering;
 
 internal class Sculpt
 {
+    internal Mesh mesh { get; private set; }
+
     private Settings m_settings;
     private ComputeShader m_shader;
     private int m_kernel;
     private int m_threadGroupX;
-    private Mesh m_mesh;
     private int m_model;
     private int m_direction;
+
     internal Sculpt(Settings settings)
     {
         m_settings = settings;
@@ -19,22 +21,22 @@ internal class Sculpt
         m_direction = Shader.PropertyToID("direction");
 
 
-        m_mesh = m_settings.sculpt.mesh.mesh;
-        m_mesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
+        mesh = m_settings.sculpt.mesh.mesh;
+        mesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
 
-        using var buffer = m_mesh.GetVertexBuffer(0);
+        using var buffer = mesh.GetVertexBuffer(0);
 
         m_shader.SetBuffer(m_kernel, "vertices", buffer);
 
         m_shader.GetKernelThreadGroupSizes(m_kernel, out uint x, out uint y, out uint z);
         m_threadGroupX = Mathf.CeilToInt(buffer.count / x);
 
-        m_shader.SetInt("stride", m_mesh.GetVertexBufferStride(0));
+        m_shader.SetInt("stride", mesh.GetVertexBufferStride(0));
         m_shader.SetInt("size", 4);
         
-        var position = m_mesh.GetVertexAttributeOffset(VertexAttribute.Position);
-        var normal = m_mesh.GetVertexAttributeOffset(VertexAttribute.Normal);
-        var tangent = m_mesh.GetVertexAttributeOffset(VertexAttribute.Tangent);
+        var position = mesh.GetVertexAttributeOffset(VertexAttribute.Position);
+        var normal = mesh.GetVertexAttributeOffset(VertexAttribute.Normal);
+        var tangent = mesh.GetVertexAttributeOffset(VertexAttribute.Tangent);
 
         m_shader.SetInt("offset_pos", position);
         m_shader.SetInt("offset_norm", normal);
@@ -44,9 +46,10 @@ internal class Sculpt
     }
 
     internal void Update(
-        Matrix4x4 model,
         Vector3 position,
         Vector3 normal,
+        Vector3 scale,
+        float aspect,
         float brushSize,
         float deformation)
     {
@@ -58,27 +61,23 @@ internal class Sculpt
                 m_settings.sculpt.mesh.transform.worldToLocalMatrix.MultiplyVector(direction).normalized;
         }
 
-
         m_shader.SetInt("space", (int)space);
+        m_shader.SetInt("brushSpace", (int)m_settings.brush.projection);
 
         direction *= Time.deltaTime * m_settings.sculpt.strength;
-
-        m_shader.SetMatrix(m_model, model);
         m_shader.SetVector(m_direction, direction);
 
-        var ortho = Quaternion.Euler(0, 0, m_settings.brush.rotation) * Vector3.up;
-        if (normal == ortho)
-        {
-            ortho = new Vector3(ortho.y, -ortho.x, 0);
-        }
-
-        Vector3 tangent = Vector3.Cross(normal, ortho);
+        Vector3 tangent = Vector3.Cross(normal, Vector3.up);
         Vector3 bitangent = Vector3.Cross(tangent, normal);
 
         m_shader.SetVector("position", position);
-        m_shader.SetVector("tangent", tangent);
-        m_shader.SetMatrix("model", model);
-        m_shader.SetVector("bitangent", bitangent);
+        m_shader.SetVector("tangent", tangent.normalized);
+        m_shader.SetVector("bitangent", bitangent.normalized);
+        m_shader.SetVector("normal", normal.normalized);
+
+        m_shader.SetFloat("aspect", aspect);
+        m_shader.SetVector("scale", scale);
+
         m_shader.SetFloat("radius", 1.0f / brushSize);
         m_shader.SetFloat("maxDeformation", deformation);
         m_shader.SetVector(m_direction, direction);

@@ -2,6 +2,9 @@
 #pragma enable_d3d11_debug_symbols
 #include "UnityCG.cginc"
 
+
+#define SQRT_1_DIV_2 0.70710678118
+
 RWByteAddressBuffer vertices;
 uint stride;
 uint size;
@@ -15,9 +18,14 @@ uint iteration;
 
 float4x4 model;
 float3 position;
+
+float3 normal;
 float3 tangent;
 float3 bitangent;
+
 float radius;
+float3 scale;
+float aspect;
 
 float maxDeformation;
 
@@ -25,26 +33,48 @@ float3 direction;
 
 // 0 - World
 // 1 - Local
-// 2 - Normal
+// 2 - Tangent
 uint space;
+
+// 0 - local tangent
+// 1 - global tangent
+uint brushSpace;
 
 Texture2D brushTexture;
 SamplerState linearClamp;
 
-float3 project(float3 a, float3 b) {
-    return b * (dot(a, b) / dot(b, b));
+float3 getBitangent(float3 normal, float4 tangent) {
+    return cross(normal, tangent.xyz) * tangent.w;
 }
 
-[numthreads(1, 1, 1)]
-void Update (uint3 id : SV_DispatchThreadID) {
+float4 getTangent(uint index) {
+    uint offset = index * stride + offset_tangent;
 
-    // Fetch the current vertex position
-    uint index = id.x + iteration * iteration_offset;
+    float4 tangent;
+    tangent.x = asfloat(vertices.Load(offset));
+    tangent.y = asfloat(vertices.Load(offset +size));
+    tangent.z = asfloat(vertices.Load(offset +size * 2));
+    tangent.w = asfloat(vertices.Load(offset +size * 3));
+    return tangent;
+}
+
+float3 getNormal(uint index) {
+    uint offset = index * stride + offset_norm;
+    float3 normal;
+    normal.x = asfloat(vertices.Load(offset));
+    normal.y = asfloat(vertices.Load(offset +size));
+    normal.z = asfloat(vertices.Load(offset +size * 2));
+
+    return normal;
+}
+
+float4 getPosition(uint index) {
+
 
     uint offset = index * stride + offset_pos;
     uint x = vertices.Load(offset);
-    uint y = vertices.Load(offset + size);
-    uint z = vertices.Load(offset + size* 2);
+    uint y = vertices.Load(offset +size);
+    uint z = vertices.Load(offset +size * 2);
 
     float4 vertex;
     vertex.x = asfloat(x);
@@ -52,47 +82,59 @@ void Update (uint3 id : SV_DispatchThreadID) {
     vertex.z = asfloat(z);
     vertex.w = 1.0f;
 
-    float3 worldPosition = mul(model, vertex);
+    return vertex;
+}
 
-    float3 diff = (position - worldPosition) * radius;
-    float3 tangentProj = project(diff, tangent);
-    float3 bitangentProj = project(diff, bitangent);
-    float2 uv = float2(-dot(tangent, tangentProj), -dot(bitangent, bitangentProj)) + float2(0.5, 0.5);
+void setPosition(uint index, float3 vertex) {
+    uint offset = index * stride + offset_pos;
+    // Write the modified vertex position
+    vertices.Store(offset, asuint(vertex.x));
+    vertices.Store(offset +size, asuint(vertex.y));
+    vertices.Store(offset +size * 2, asuint(vertex.z));
+}
+
+[numthreads(1, 1, 1)]
+void Update(uint3 id : SV_DispatchThreadID) {
+    // Fetch the current vertex position
+    uint index = id.x + iteration * iteration_offset;
+
+    float3 vertex = getPosition(index);
+
+    float3 difference = (position - vertex) * scale.x * radius;
+
+    if (length(difference) > SQRT_1_DIV_2) {
+        return;
+    }
+
+    float3x3 transform;
+    if (brushSpace == 0) {
+        float3 normal = getNormal(index);
+        float4 tangent = getTangent(index);
+        float3 bitangent = getBitangent(normal, tangent);
+        transform = float3x3(tangent.xyz, bitangent, normal);
+    } else {
+        transform = float3x3(tangent, bitangent, normal);
+    }
+
+    float2 uv = mul(transform, difference).xy;
+    uv.y *= aspect;
+    uv += float2(0.5f, 0.5f);
+
     if (uv.x > 1 || uv.y > 1 || uv.x < 0 || uv.y < 0) {
         return;
     }
 
     float w = brushTexture.SampleLevel(linearClamp, uv, 0, 0).a;
 
-    if (space == 2) //normal space
+    if (space == 2) //tangent space
     {
-        uint offset = index * stride + offset_norm;
-        float3 normal;
-        normal.x = asfloat(vertices.Load(offset));
-        normal.y = asfloat(vertices.Load(offset + size));
-        normal.z = asfloat(vertices.Load(offset + size * 2));
-
-        float3 tangent;
-        
-        offset = index * stride + offset_tangent;
-        tangent.x = asfloat(vertices.Load(offset));
-        tangent.y = asfloat(vertices.Load(offset + size));
-        tangent.z = asfloat(vertices.Load(offset + size * 2));
-
-        float3 bitangent = cross(normal, tangent);
-
-        direction = tangent * direction.x + normal * direction.y + bitangent * direction.z;
+        float3 normal = getNormal(index);
+        float4 tangent = getTangent(index);
+        float3 bitangent = getBitangent(normal, tangent);
+        direction = tangent * direction.x + bitangent * direction.y + normal * direction.z;
     }
 
     // Modify the vertex position
     vertex.xyz += direction * lerp(0, maxDeformation, w);
-
-    x = asuint(vertex.x);
-    y = asuint(vertex.y);
-    z = asuint(vertex.z);
-
-    // Write the modified vertex position
-    vertices.Store(offset, x);
-    vertices.Store(offset + size,y);
-    vertices.Store(offset + size * 2, z);
+    setPosition(index, vertex);
 }

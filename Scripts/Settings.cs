@@ -73,9 +73,6 @@ internal class BrushSettings
     internal Texture texture;
 
     [SerializeField]
-    internal float rotation = 0f;
-
-    [SerializeField]
     internal ProjectionType projection;
 
     internal enum ProjectionType
@@ -116,7 +113,7 @@ internal class SculptSettings
     {
         World = 0, 
         Local = 1,
-        Normal = 2,
+        Tangent = 2,
     }
 
     [SerializeField]
