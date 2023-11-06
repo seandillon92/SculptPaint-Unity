@@ -3,26 +3,51 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+[Serializable]
+internal class MaterialSet
+{
+    [SerializeField]
+    internal List<Material> materials;
+
+    [SerializeField]
+    internal int maskChannel;
+}
+
+internal class RenderSet
+{
+    internal Capture capture;
+    internal MaterialSet materials;
+
+    public RenderSet(Capture capture, MaterialSet material)
+    {
+        this.capture = capture;
+        this.materials = material;
+    }
+}
+
 [RequireComponent(typeof(Camera))]
 internal class DeferredRender : MonoBehaviour
 {
-    private List<Capture> m_captures = new List<Capture>();
-    private Capture m_maskCapture;
-
-    [SerializeField]
-    private Material m_mask;
+    private List<RenderSet> m_renders = new List<RenderSet>();
 
     [SerializeField]
     private Material m_blend;
 
     [SerializeField]
-    private List<Material> m_materials;
+    private List<MaterialSet> m_materials;
 
     [SerializeField]
     private Camera m_camera;
 
     [SerializeField]
     private LayerMask m_cull;
+
+    private List<MaskedObject> m_objects;
+
+    [SerializeField]
+    private Capture m_mask;
+
+    private Material m_empty;
 
     public void Awake()
     {
@@ -31,26 +56,32 @@ internal class DeferredRender : MonoBehaviour
 
     public void Start()
     {
-        var renderers = FindObjectsOfType<MeshRenderer>();
-        var filteredRenderers = new List<MeshRenderer>();
-        for (int i = 0; i < renderers.Length; i++)
+        var objects = FindObjectsOfType<MaskedObject>();
+        m_objects = new List<MaskedObject>();
+        var renderers = new List<MeshRenderer>();
+        for (int i = 0; i < objects.Length; i++)
         {
-            var renderer = renderers[i];
+            var obj = objects[i];
 
-            if( (1<<renderer.gameObject.layer & m_cull) != 0)
+            if ((1 << obj.gameObject.layer & m_cull) != 0)
             {
-                filteredRenderers.Add(renderer);
+                m_objects.Add(obj);
+                renderers.Add(obj.Renderer);
             }
         }
 
-        m_captures.Clear();
+        m_renders.Clear();
+
         for (int i = 0; i < m_materials.Count; i++)
         {
-            var material = m_materials[i];
-            m_captures.Add(new Capture(m_camera, m_cull, filteredRenderers, material));
+            var materials = m_materials[i];
+            m_renders.Add(
+                new RenderSet(
+                    new Capture(m_camera, m_cull, renderers, materials.materials),
+                    materials));
         }
 
-        m_maskCapture = new Capture(m_camera, m_cull, filteredRenderers, m_mask);
+        m_mask = new Capture(m_camera,cull: ~0, renderers, null);
     }
 
     private bool blend = false;
@@ -59,12 +90,27 @@ internal class DeferredRender : MonoBehaviour
     {
         blend = false;
 
+        // Grab snaps of all objects, using the override materials
         for (int i = 0; i < m_materials.Count; i++)
         {
-            m_captures[i].Update();
+            m_renders[i].capture.Update();
         }
 
-        m_maskCapture.Update();
+        // change the objects to use the mask material
+        for (int i = 0; i < m_objects.Count; i++)
+        {
+            var obj = m_objects[i];
+            obj.ApplyMaterials(obj.Masks);
+        }
+
+        m_mask.Update();
+
+        for(int i =0; i < m_objects.Count; i++)
+        {
+            var obj = m_objects[i];
+            obj.ApplyMaterials(obj.Materials);
+        }
+
         blend = true;
     }
 
@@ -72,19 +118,12 @@ internal class DeferredRender : MonoBehaviour
     {
         if (blend)
         {
-            for (int i = 0; i < m_captures.Count; i++)
+            for (int i = 0; i < m_renders.Count; i++)
             {
-                var capture = m_captures[i];
-                SetForeground(capture.texture);
-                SetMask(m_maskCapture.texture, 1 - i % 2);
-                //if (i % 2 == 1 && false)
-                {
-                //    Blend(BlendMode.OneMinusSrcAlpha, BlendMode.SrcAlpha);
-                }
-                //else
-                {
-                    Blend(BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
-                }
+                var render = m_renders[i];
+                SetForeground(render.capture.texture);
+                SetMask( m_mask.texture, render.materials.maskChannel);
+                Blend(BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha);
             }
         }
     }

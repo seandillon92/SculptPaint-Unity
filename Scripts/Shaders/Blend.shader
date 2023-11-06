@@ -59,7 +59,7 @@ Shader "Unlit/Blend"
 
             fixed4 frag(v2f i) : SV_Target
             {
-                float m = saturate(tex2D(_Mask, i.uv)[maskChannel]);
+                float m = saturate(-tex2D(_Mask, i.uv)[maskChannel]);
                 float4 t = tex2D(_MainTex, i.uv);
                 return fixed4(t.xyz, m);
             }

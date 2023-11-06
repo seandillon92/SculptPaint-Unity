@@ -13,7 +13,7 @@ internal class Paint
     private Capture m_capture;
     private RenderTexture m_captureTexture;
 
-    internal Paint(Settings settings, List<MeshRenderer> renderer)
+    internal Paint(Settings settings, MeshRenderer renderer)
     {
         m_shader = Resources.Load<ComputeShader>("Paint");
         m_dissipate = m_shader.FindKernel("Dissipate");
@@ -50,8 +50,8 @@ internal class Paint
             new Capture(
                 m_settings.paint.camera, 
                 m_settings.paint.layer, 
-                renderer, 
-                m_settings.paint.material);
+                new List<MeshRenderer>() { renderer}, 
+                new List<Material>() { m_settings.paint.material });
 
         m_settings.paint.material.SetTexture("_MainTex", m_settings.brush.texture);
     }

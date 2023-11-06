@@ -28,7 +28,7 @@ public class Meltdown : MonoBehaviour
     private void Start()
     {
         m_renderer = GetComponent<MeshRenderer>();
-        m_paint = new Paint(m_settings, new List<MeshRenderer>() { m_renderer });
+        m_paint = new Paint(m_settings, m_renderer );
 
         m_brush = new Brush(m_settings);
         m_sculpt = new Sculpt(m_settings);

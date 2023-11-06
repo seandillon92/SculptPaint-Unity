@@ -5,24 +5,25 @@ using UnityEngine;
 [Serializable]
 internal class Capture
 {
+    [SerializeField]
     internal RenderTexture texture;
 
-    internal Material material;
+    private List<Material> m_materials;
     private Camera m_camera;
     private LayerMask m_cull;
 
-    private List<Material> m_cachedMaterials = new List<Material>();
     private List<MeshRenderer> m_renderers = new List<MeshRenderer>();
+    private List<List<Material>> m_cachedMaterials = new List<List<Material>>();
 
     internal Capture(
         Camera cam, 
         LayerMask cull, 
         List<MeshRenderer> renderers, 
-        Material material)
+        List<Material> materials)
     {
         m_camera = cam;
         m_cull = cull;
-        this.material = material;
+        m_materials = materials;
 
         texture =
             new RenderTexture(
@@ -39,6 +40,14 @@ internal class Capture
         }
 
         m_renderers.AddRange(renderers);
+
+        for (int i = 0; i < renderers.Count; i++)
+        {
+            var cachedMaterials = new List<Material>();
+            renderers[i].GetSharedMaterials(cachedMaterials);
+
+            m_cachedMaterials.Add(cachedMaterials);
+        }
     }
 
     internal RenderTexture Update()
@@ -49,13 +58,6 @@ internal class Capture
 
     internal void Update(RenderTexture target)
     {
-        m_cachedMaterials.Clear();
-        for (int i = 0; i  < m_renderers.Count; i++)
-        {
-            m_cachedMaterials.Add(m_renderers[i].sharedMaterial);
-            m_renderers[i].sharedMaterial = material;
-        }
-
         var prevCull = m_camera.cullingMask;
         var prevClearFlag = m_camera.clearFlags;
         var prevBackgroundColor = m_camera.backgroundColor;
@@ -70,12 +72,24 @@ internal class Capture
         m_camera.targetTexture = target;
 
 
+        if (m_materials != null)
+        {
+            for (int i = 0; i < m_renderers.Count; i++)
+            {
+                m_renderers[i].SetSharedMaterials(m_materials);
+            }
+        }
+
         Screen.SetResolution(texture.width, texture.height, true);
         m_camera.Render();
         Screen.SetResolution(prevResolution.width, prevResolution.height, prevFullScreen);
-        for (int i = 0; i < m_renderers.Count; i++)
+
+        if (m_materials != null)
         {
-            m_renderers[i].sharedMaterial = m_cachedMaterials[i];
+            for (int i = 0; i < m_renderers.Count; i++)
+            {
+                m_renderers[i].SetSharedMaterials(m_cachedMaterials[i]);
+            }
         }
 
         m_camera.cullingMask = prevCull;

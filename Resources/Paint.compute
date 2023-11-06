@@ -21,10 +21,10 @@ void Dissipate(uint3 id : SV_DispatchThreadID)
         Write[id.xy] = Read[id.xy];
         return;
     }
-    r -= dissipation;
-    r = max(r, 0);
+    r += dissipation;
+    r = min(r, 0);
 
-   Write[id.xy] = float2(r, 1 - r);
+   Write[id.xy] = float2(r, -1 - r);
 }
 
 [numthreads(8, 8, 1)]
@@ -47,7 +47,7 @@ void Stamp(uint3 id : SV_DispatchThreadID) {
     { 
         return;
     }
-    Write[id.xy] = saturate(r) + delay;
+    Write[id.xy] = -(saturate(r) + delay);
 }
 
 
