@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using PaintSculpt;
 
-public class Character : MonoBehaviour
+public class Wolf : MonoBehaviour
 {
     [SerializeField]
     private Animator animator;
@@ -26,9 +27,6 @@ public class Character : MonoBehaviour
     private Transform back_right;
 
     [SerializeField]
-    private Settings m_settings;
-
-    [SerializeField]
     private MeshRenderer m_renderer;
 
     private Paint m_paint;
@@ -36,9 +34,15 @@ public class Character : MonoBehaviour
     [SerializeField]
     private MaskedObject m_mask;
 
+    [SerializeField]
+    private PaintSettings m_paintSettings;
+
+    [SerializeField]
+    private BrushSettings m_brushSettings;
+
     private void Start()
     {
-        m_paint = new Paint(m_settings, m_renderer);
+        m_paint = new Paint(m_paintSettings, m_brushSettings, m_renderer);
     }
 
     void Update()
@@ -85,7 +89,6 @@ public class Character : MonoBehaviour
 
         m_paint.Write(localFront, Vector3.up, frontFoot.forward, Vector3.one);
         m_paint.Write(localBack, Vector3.up, backFoot.forward, Vector3.one);
-
 
         m_mask.UpdateMask(m_paint.Texture, index:0);
     }

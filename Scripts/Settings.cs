@@ -1,22 +1,9 @@
 using System;
 using UnityEngine;
 
-[Serializable]
-internal class Settings
+namespace PaintSculpt
 {
-    [SerializeField]
-    internal BrushSettings brush;
-
-    [SerializeField]
-    internal ControlSettings control;
-
-    [SerializeField]
-    internal PaintSettings paint;
-
-    [SerializeField]
-    internal SculptSettings sculpt;
-
-    internal enum Resolution
+    public enum Resolution
     {
         None = 0,
         R128 = 128,
@@ -26,112 +13,86 @@ internal class Settings
         R2048 = 2048,
         R4096 = 4096,
     }
-}
 
-[Serializable]
-internal class ControlSettings
-{
-    [SerializeField]
-    internal float rotateVelocity = 0.1f;
-
-    [SerializeField]
-    internal float sizeChangeSpeed = 0.1f;
-
-    [SerializeField]
-    internal float distanceMin = 1;
-
-    [SerializeField]
-    internal float distanceMax = 10;
-
-    [SerializeField]
-    [Range(0, 1)]
-    internal float distance = 0.5f;
-
-    [SerializeField]
-    internal float distanceChangeSpeed = 1.0f;
-
-    [SerializeField]
-    internal Transform transform;
-}
-
-[Serializable]
-internal class BrushSettings
-{
-    [SerializeField]
-    internal float size = 0.25f;
-
-    [SerializeField]
-    internal float minSize = 0.1f;
-
-    [SerializeField]
-    internal float maxSize = 1f;
-
-    [SerializeField]
-    internal float pressure = 0.1f;
-
-    [SerializeField]
-    internal Texture texture;
-
-    [SerializeField]
-    internal ProjectionType projection;
-
-    internal enum ProjectionType
+    [Serializable]
+    public class BrushSettings
     {
-        LocalTangent = 0,
-        GlobalTangent = 1,
+        [SerializeField]
+        public float size = 0.25f;
+
+        [SerializeField]
+        public float minSize = 0.1f;
+
+        [SerializeField]
+        public float maxSize = 1f;
+
+        [SerializeField]
+        public float pressure = 0.1f;
+
+        [SerializeField]
+        public Texture texture;
+
+        [SerializeField]
+        public ProjectionType projection;
+
+        public enum ProjectionType
+        {
+            LocalTangent = 0,
+            GlobalTangent = 1,
+        }
+
+        [SerializeField]
+        [Range(0, 360)]
+        public float rotation = 0f;
     }
 
-    [SerializeField]
-    [Range(0,360)]
-    internal float rotation = 0f;
-}
-
-[Serializable]
-internal class PaintSettings
-{
-    [SerializeField]
-    internal float dissipation = 0.1f;
-
-    [SerializeField]
-    internal float delay = 5.0f;
-
-    [SerializeField]
-    internal Camera camera;
-
-    [SerializeField]
-    internal LayerMask layer;
-
-    [SerializeField]
-    internal Material material;
-
-    [SerializeField]
-    private Settings.Resolution resolution;
-
-    internal int GetResolution() => (int)resolution;
-}
-
-[Serializable]
-internal class SculptSettings
-{
-    internal enum Space
+    [Serializable]
+    public class PaintSettings
     {
-        World = 0, 
-        Local = 1,
-        Tangent = 2,
+        [SerializeField]
+        public float dissipation = 0.1f;
+
+        [SerializeField]
+        public float delay = 5.0f;
+
+        [SerializeField]
+        public Camera camera;
+
+        [SerializeField]
+        public LayerMask layer;
+
+        [SerializeField]
+        public Material material;
+
+        [SerializeField]
+        private Resolution resolution;
+
+        public int GetResolution() => (int)resolution;
     }
 
-    [SerializeField]
-    internal MeshFilter mesh;
+    [Serializable]
+    public class SculptSettings
+    {
+        public enum Space
+        {
+            World = 0,
+            Local = 1,
+            Tangent = 2,
+        }
 
-    [SerializeField]
-    internal Camera camera;
+        [SerializeField]
+        public MeshFilter mesh;
 
-    [SerializeField]
-    internal float strength;
+        [SerializeField]
+        public Camera camera;
 
-    [SerializeField]
-    internal Space space;
+        [SerializeField]
+        public float strength;
 
-    [SerializeField]
-    internal Vector3 direction;
+        [SerializeField]
+        public Space space;
+
+        [SerializeField]
+        public Vector3 direction;
+    }
 }

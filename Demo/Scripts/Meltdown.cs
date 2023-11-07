@@ -1,13 +1,19 @@
 using System.Collections;
 using UnityEngine;
+using PaintSculpt;
 
 public class Meltdown : MonoBehaviour
 {
     [SerializeField]
-    private Settings m_settings;
+    private PaintSettings m_paintSettings;
+    [SerializeField]
+    private SculptSettings m_sculptSettings;
+    [SerializeField]
+    private BrushSettings m_brushSettings;
+    [SerializeField]
+    private ControlSettings m_controlSettings;
 
     private Paint m_paint;
-    private Brush m_brush;
     private Sculpt m_sculpt;
     private Control m_control;
 
@@ -27,19 +33,17 @@ public class Meltdown : MonoBehaviour
     private void Start()
     {
         m_renderer = GetComponent<MeshRenderer>();
-        m_paint = new Paint(m_settings, m_renderer );
+        m_paint = new Paint(m_paintSettings, m_brushSettings, m_renderer );
 
-        m_brush = new Brush(m_settings);
-        m_sculpt = new Sculpt(m_settings);
-        m_control = new Control(m_settings);
+        m_sculpt = new Sculpt(m_sculptSettings, m_brushSettings);
+        m_control = new Control(m_controlSettings, m_brushSettings);
 
-        m_collider.sharedMesh = m_sculpt.mesh;
+        m_collider.sharedMesh = m_sculpt.Mesh;
     }
 
     private void Update()
     {
         m_control.Update();
-        m_brush.Update();
         var lmb = Input.GetMouseButton(0);
         if (lmb)
         {
@@ -49,8 +53,8 @@ public class Meltdown : MonoBehaviour
             {
                 var point =  hit.transform.InverseTransformPoint(hit.point);
                 var normal = hit.transform.InverseTransformDirection(hit.normal);
-                
-                m_paint.Write(point, normal, Vector3.up, transform.lossyScale);
+                var forward = hit.transform.InverseTransformDirection(Vector3.up);
+                m_paint.Write(point, normal, forward, transform.lossyScale);
                 
                 StartCoroutine(MeltDown(point, normal, hit.transform.lossyScale));
             }
@@ -67,9 +71,9 @@ public class Meltdown : MonoBehaviour
     private IEnumerator MeltGeometry(Vector3 position, Vector3 normal, Vector3 scale)
     {
         var timer = 0.0f;
-        var maxTime = m_settings.paint.delay;
-        var brushSize = m_settings.brush.size;
-        var aspect = m_settings.brush.texture.width / m_settings.brush.texture.height;
+        var maxTime = m_paintSettings.delay;
+        var brushSize = m_brushSettings.size;
+        var aspect = m_brushSettings.texture.width / m_brushSettings.texture.height;
         while (timer < maxTime)
         {
             m_sculpt.Update(

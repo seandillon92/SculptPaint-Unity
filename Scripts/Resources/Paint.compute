@@ -47,7 +47,7 @@ void Stamp(uint3 id : SV_DispatchThreadID) {
     { 
         return;
     }
-    Write[id.xy] = -(saturate(r) + delay);
+    Write[id.xy] = -(saturate(r) + delay + 0.0001);
 }
 
 
