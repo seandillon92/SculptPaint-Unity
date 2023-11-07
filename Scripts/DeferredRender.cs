@@ -47,8 +47,6 @@ internal class DeferredRender : MonoBehaviour
     [SerializeField]
     private Capture m_mask;
 
-    private Material m_empty;
-
     public void Awake()
     {
         m_camera = GetComponent<Camera>();

@@ -24,6 +24,7 @@ Shader "Unlit/MaskPaint"
             #pragma enable_d3d11_debug_symbols
 
             #define SQRT_1_DIV_2 0.70710678118
+            #define DEG2RAD 0.0174533
 
             #include "UnityCG.cginc"
 
@@ -37,6 +38,10 @@ Shader "Unlit/MaskPaint"
             uniform float3 bitangent;
             uniform float3 normal;
 
+            uniform float3 forward;
+
+            uniform float rotation;
+
             // 0 - tangent local
             // 1 - tangent global
             uniform int space;
@@ -46,7 +51,6 @@ Shader "Unlit/MaskPaint"
                 float4 vertex : POSITION;
                 float2 uv : TEXCOORD0;
                 float3 normal: NORMAL;
-                float4 tangent: TANGENT;
             };
 
             struct v2f
@@ -57,6 +61,26 @@ Shader "Unlit/MaskPaint"
                 float3x3 transform : POSITION2;
             };
 
+            float3 projectPlane(float3 v, float3 n){
+                return v - n * dot(v, n) / dot(n, n);
+            }
+
+            float3x3 rotateMatrix(float angle, float3 axis) {
+                float c, s;
+                sincos(angle, s, c);
+
+                float t = 1 - c;
+                float x = axis.x;
+                float y = axis.y;
+                float z = axis.z;
+
+                return float3x3(
+                    t * x * x + c, t * x * y - s * z, t * x * z + s * y,
+                    t * x * y + s * z, t * y * y + c, t * y * z - s * x,
+                    t * x * z - s * y, t * y * z + s * x, t * z * z + c
+                );
+            }
+
             v2f vert (appdata v)
             {
                 v2f o;
@@ -64,15 +88,17 @@ Shader "Unlit/MaskPaint"
                 o.position = v.vertex;
 
                 if (space == 0) {
-                    float3 tangent = normalize(v.tangent.xyz);
-                    float3 bitangent = normalize(cross(v.normal, tangent) * v.tangent.w);
+                    
+                    float3 tangent = normalize(projectPlane(forward, normal));
+                    tangent = mul(rotateMatrix(rotation * DEG2RAD, normal), tangent);
+                    float3 bitangent = normalize(cross(v.normal, tangent));
+                    
                     o.transform = float3x3(tangent, bitangent, v.normal);
                 }
                 else if (space == 1) 
                 { 
                     o.transform = float3x3(tangent, bitangent, normal);
                 }
-
 
                 UNITY_TRANSFER_FOG(o,o.vertex);
                 return o;
@@ -97,7 +123,8 @@ Shader "Unlit/MaskPaint"
                     return 0.0f;
                 }
 
-                return tex2D(_MainTex, uv).a;
+                float4 texel = tex2D(_MainTex, uv);
+                return texel.a;
             }
             ENDCG
         }

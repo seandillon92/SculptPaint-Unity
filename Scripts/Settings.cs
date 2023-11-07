@@ -80,6 +80,10 @@ internal class BrushSettings
         LocalTangent = 0,
         GlobalTangent = 1,
     }
+
+    [SerializeField]
+    [Range(0,360)]
+    internal float rotation = 0f;
 }
 
 [Serializable]

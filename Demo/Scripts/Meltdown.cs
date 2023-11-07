@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Meltdown : MonoBehaviour
@@ -16,7 +15,7 @@ public class Meltdown : MonoBehaviour
     private LayerMask m_layerMask;
 
     [SerializeField]
-    private Material m_maskMaterial;
+    private MaskedObject m_object;
 
     private MeshRenderer m_renderer;
     private MeshCollider m_collider;
@@ -50,15 +49,14 @@ public class Meltdown : MonoBehaviour
             {
                 var point =  hit.transform.InverseTransformPoint(hit.point);
                 var normal = hit.transform.InverseTransformDirection(hit.normal);
-                //RenderDocCapture.RunWithCapture(() =>
-                //{
-                    m_paint.Write(point, normal, transform.lossyScale);
-                //}, 1);
+                
+                m_paint.Write(point, normal, Vector3.up, transform.lossyScale);
+                
                 StartCoroutine(MeltDown(point, normal, hit.transform.lossyScale));
             }
         }
         m_paint.Update();
-        m_maskMaterial.SetTexture("_MainTex", m_paint.Texture);
+        m_object.UpdateMask(m_paint.Texture, 0);
     }
 
     private IEnumerator MeltDown(Vector3 position, Vector3 normal, Vector3 scale)

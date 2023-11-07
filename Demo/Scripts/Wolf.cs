@@ -44,11 +44,18 @@ public class Character : MonoBehaviour
     void Update()
     {
         var forward = Input.GetKey(KeyCode.W);
+        var backward = Input.GetKey(KeyCode.S);
+        
         animator.SetBool("forward", forward);
+        animator.SetBool("backward", backward);
 
         if (forward)
         {
             character.position += character.forward * speed;
+        }
+        if (backward)
+        {
+            character.position += -character.forward * speed;
         }
 
         m_paint.Update();
@@ -57,27 +64,27 @@ public class Character : MonoBehaviour
 
     public void FootMoved(string foot)
     {
-        Vector3 frontFoot = Vector3.zero;
-        Vector3 backFoot = Vector3.zero;
+        Transform frontFoot = null;
+        Transform backFoot = null;
 
         if (foot == "left")
         {
             // Paint on front left and back right
-            frontFoot = forward_left.position;
-            backFoot = back_right.position;
+            frontFoot = forward_left;
+            backFoot = back_right;
         }
         else if (foot == "right")
         {
             // Paint on front right and back left
-            frontFoot = forward_right.position;
-            backFoot = back_left.position;
+            frontFoot = forward_right;
+            backFoot = back_left;
         }
 
-        var localFront = m_renderer.transform.InverseTransformPoint(frontFoot);
-        var localBack = m_renderer.transform.InverseTransformPoint(backFoot);
+        var localFront = m_renderer.transform.InverseTransformPoint(frontFoot.position);
+        var localBack = m_renderer.transform.InverseTransformPoint(backFoot.position);
 
-        m_paint.Write(localFront, Vector3.up, Vector3.one);
-        m_paint.Write(localBack, Vector3.up, Vector3.one);
+        m_paint.Write(localFront, Vector3.up, frontFoot.forward, Vector3.one);
+        m_paint.Write(localBack, Vector3.up, backFoot.forward, Vector3.one);
 
 
         m_mask.UpdateMask(m_paint.Texture, index:0);

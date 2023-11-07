@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions;
+
 internal class Paint
 {
     private ComputeShader m_shader;
@@ -58,13 +60,21 @@ internal class Paint
 
     internal RenderTexture Texture => m_buffer.write;
 
-    internal void Write(Vector3 position, Vector3 normal, Vector3 scale)
+    internal void Write(Vector3 position, Vector3 normal, Vector3 forward, Vector3 scale)
     {
         var material = m_settings.paint.material;
         material.SetVector("position", position);
         material.SetVector("normal", normal.normalized);
+        material.SetVector("forward", forward.normalized);
+        material.SetFloat("rotation", m_settings.brush.rotation);
 
-        var tangent = Vector3.Cross(normal, Vector3.up);
+        if (normal == forward)
+        {
+            throw new Exception("Forward vector is same as normal");
+        }
+        var tangent = Vector3.ProjectOnPlane(forward, normal);
+        tangent = Quaternion.Euler(normal * m_settings.brush.rotation) * tangent;
+
         var bitangent = Vector3.Cross(normal, tangent);
         material.SetVector("tangent", tangent.normalized);
         material.SetVector("bitangent", bitangent.normalized);
