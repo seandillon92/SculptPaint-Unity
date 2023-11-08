@@ -4,6 +4,7 @@
 
 
 #define SQRT_1_DIV_2 0.70710678118
+#define DEG2RAD 0.0174533
 
 RWByteAddressBuffer vertices;
 uint stride;
@@ -22,6 +23,9 @@ float3 position;
 float3 normal;
 float3 tangent;
 float3 bitangent;
+float3 forward;
+
+float rotation;
 
 float radius;
 float3 scale;
@@ -70,7 +74,6 @@ float3 getNormal(uint index) {
 
 float4 getPosition(uint index) {
 
-
     uint offset = index * stride + offset_pos;
     uint x = vertices.Load(offset);
     uint y = vertices.Load(offset +size);
@@ -93,6 +96,26 @@ void setPosition(uint index, float3 vertex) {
     vertices.Store(offset +size * 2, asuint(vertex.z));
 }
 
+float3 projectPlane(float3 v, float3 n) {
+    return v - n * dot(v, n) / dot(n, n);
+}
+
+float3x3 rotateMatrix(float angle, float3 axis) {
+    float c, s;
+    sincos(angle, s, c);
+
+    float t = 1 - c;
+    float x = axis.x;
+    float y = axis.y;
+    float z = axis.z;
+
+    return float3x3(
+        t * x * x + c, t * x * y - s * z, t * x * z + s * y,
+        t * x * y + s * z, t * y * y + c, t * y * z - s * x,
+        t * x * z - s * y, t * y * z + s * x, t * z * z + c
+    );
+}
+
 [numthreads(1, 1, 1)]
 void Update(uint3 id : SV_DispatchThreadID) {
     // Fetch the current vertex position
@@ -109,7 +132,7 @@ void Update(uint3 id : SV_DispatchThreadID) {
     float3x3 transform;
     if (brushSpace == 0) {
         float3 normal = getNormal(index);
-        float4 tangent = getTangent(index);
+        float4 tangent = float4(mul(rotateMatrix(DEG2RAD * rotation, normal), projectPlane(forward, normal)), 1.0);
         float3 bitangent = getBitangent(normal, tangent);
         transform = float3x3(tangent.xyz, bitangent, normal);
     } else {
@@ -128,10 +151,7 @@ void Update(uint3 id : SV_DispatchThreadID) {
 
     if (space == 2) //tangent space
     {
-        float3 normal = getNormal(index);
-        float4 tangent = getTangent(index);
-        float3 bitangent = getBitangent(normal, tangent);
-        direction = tangent * direction.x + bitangent * direction.y + normal * direction.z;
+        direction = mul(transpose(transform), direction);
     }
 
     // Modify the vertex position

@@ -78,7 +78,8 @@ namespace PaintSculpt
             var tangent = Vector3.ProjectOnPlane(forward, normal);
             tangent = Quaternion.Euler(normal * m_brushSettings.rotation) * tangent;
 
-            var bitangent = Vector3.Cross(normal, tangent);
+            var bitangent = Vector3.Cross(tangent, normal);
+
             material.SetVector("tangent", tangent.normalized);
             material.SetVector("bitangent", bitangent.normalized);
 

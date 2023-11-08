@@ -56,29 +56,30 @@ public class Meltdown : MonoBehaviour
                 var forward = hit.transform.InverseTransformDirection(Vector3.up);
                 m_paint.Write(point, normal, forward, transform.lossyScale);
                 
-                StartCoroutine(MeltDown(point, normal, hit.transform.lossyScale));
+                StartCoroutine(MeltDown(point, normal, forward, hit.transform.lossyScale));
             }
         }
         m_paint.Update();
         m_object.UpdateMask(m_paint.Texture, 0);
     }
 
-    private IEnumerator MeltDown(Vector3 position, Vector3 normal, Vector3 scale)
+    private IEnumerator MeltDown(Vector3 position, Vector3 normal, Vector3 forward, Vector3 scale)
     {
-        yield return MeltGeometry(position, normal, scale);
+        yield return MeltGeometry(position, normal, forward, scale);
     }
 
-    private IEnumerator MeltGeometry(Vector3 position, Vector3 normal, Vector3 scale)
+    private IEnumerator MeltGeometry(Vector3 position, Vector3 normal, Vector3 forward, Vector3 scale)
     {
         var timer = 0.0f;
         var maxTime = m_paintSettings.delay;
         var brushSize = m_brushSettings.size;
-        var aspect = m_brushSettings.texture.width / m_brushSettings.texture.height;
+        var aspect = m_brushSettings.texture.width / ((float)m_brushSettings.texture.height);
         while (timer < maxTime)
         {
             m_sculpt.Update(
                 position,
                 normal,
+                forward,
                 scale,
                 aspect,
                 brushSize,

@@ -52,6 +52,7 @@ namespace PaintSculpt
         public void Update(
             Vector3 position,
             Vector3 normal,
+            Vector3 forward,
             Vector3 scale,
             float aspect,
             float brushSize,
@@ -71,13 +72,16 @@ namespace PaintSculpt
             direction *= Time.deltaTime * m_settings.strength;
             m_shader.SetVector(m_direction, direction);
 
-            Vector3 tangent = Vector3.Cross(normal, Vector3.up);
+            Vector3 tangent = Vector3.ProjectOnPlane(forward, normal);
+            tangent = Quaternion.Euler(normal * m_brushSettings.rotation) * tangent;
             Vector3 bitangent = Vector3.Cross(tangent, normal);
 
             m_shader.SetVector("position", position);
             m_shader.SetVector("tangent", tangent.normalized);
             m_shader.SetVector("bitangent", bitangent.normalized);
             m_shader.SetVector("normal", normal.normalized);
+            m_shader.SetVector("forward", forward.normalized);
+            m_shader.SetFloat("rotation", m_brushSettings.rotation);
 
             m_shader.SetFloat("aspect", aspect);
             m_shader.SetVector("scale", scale);
