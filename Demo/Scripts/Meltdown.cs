@@ -8,6 +8,10 @@ public class Meltdown : MonoBehaviour
     private PaintSettings m_paintSettings;
     [SerializeField]
     private SculptSettings m_sculptSettings;
+    
+    [SerializeField]
+    private SculptSettings m_secondarySculptSettings;
+
     [SerializeField]
     private BrushSettings m_brushSettings;
     [SerializeField]
@@ -15,6 +19,7 @@ public class Meltdown : MonoBehaviour
 
     private Paint m_paint;
     private Sculpt m_sculpt;
+    private Sculpt m_sculpt_secondary;
     private Control m_control;
 
     [SerializeField]
@@ -36,6 +41,7 @@ public class Meltdown : MonoBehaviour
         m_paint = new Paint(m_paintSettings, m_brushSettings, m_renderer );
 
         m_sculpt = new Sculpt(m_sculptSettings, m_brushSettings);
+        m_sculpt_secondary = new Sculpt(m_secondarySculptSettings, m_brushSettings);
         m_control = new Control(m_controlSettings, m_brushSettings);
 
         m_collider.sharedMesh = m_sculpt.Mesh;
@@ -77,6 +83,15 @@ public class Meltdown : MonoBehaviour
         while (timer < maxTime)
         {
             m_sculpt.Update(
+                position,
+                normal,
+                forward,
+                scale,
+                aspect,
+                brushSize,
+                deformation: 0.0001f * Time.deltaTime);
+
+            m_sculpt_secondary.Update(
                 position,
                 normal,
                 forward,
