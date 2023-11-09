@@ -4,9 +4,11 @@ Sculpting and Painting package for Unity Runtime. The purpose of the package is 
 
 ## Features
 ### **Painting**
+![Paint](Docs/Stamp.png)
 Paint textures on your models, using world space coordinates. Stamp decals that take the surface shape into account. 
 
 ### **Sculpting**
+![Sculpt](Docs/Sculpt.png)
 Change the geometry of your model, using world space coordinates. Everything is done on the GPU without any copies. Apply a brush on the model to change position of vertices towards a direction in local, world or tagent space.
 
 ### **Material Blending**
