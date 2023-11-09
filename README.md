@@ -43,5 +43,8 @@ Install via the package manager. See https://docs.unity3d.com/Manual/upm-ui-gitu
 
 ## Credits
 Originally, the system was working only in screen space. I implemented the approach described in [1] to convert it into world space. I extended it with decals (brushes) and my own solution for the rasterization artefact.
+
+Used [2] to produce a 3x3 rotation matrix in my HLSL shaders.
 ### References
 [1] Mesh Texture Painting in Unity using Shaders - Shahriar Shahrabi. https://shahriyarshahrabi.medium.com/mesh-texture-painting-in-unity-using-shaders-8eb7fc31221c
+[2] https://gist.github.com/keijiro/ee439d5e7388f3aafc5296005c8c3f33
