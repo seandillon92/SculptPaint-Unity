@@ -12,7 +12,6 @@ namespace PaintSculpt
         private ComputeShader m_shader;
         private int m_kernel;
         private int m_threadGroupX;
-        private int m_model;
         private int m_direction;
 
         public Sculpt(SculptSettings settings, BrushSettings brushSettings)
@@ -21,7 +20,6 @@ namespace PaintSculpt
             m_brushSettings = brushSettings;
             m_shader = Resources.Load<ComputeShader>("Sculpt");
             m_kernel = m_shader.FindKernel("Update");
-            m_model = Shader.PropertyToID("mvp");
             m_direction = Shader.PropertyToID("direction");
 
 
