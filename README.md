@@ -1,6 +1,6 @@
 ![Demo](Docs/LavaDemo.gif)
 # SculptPaint-Unity
-Sculpting and Painting package for Unity Runtime. The purpose of the package is to allow quick prototyping visual effects by using world space painting and sculpting.
+Sculpting and Painting package for Unity Runtime. Usefull for prototyping visual effects with world space painting and sculpting.
 
 ## Features
 ### **Painting**
