@@ -12,6 +12,7 @@ Paint your model. Apply decals that take the surface shape into account.
 Modify the vertices of your model. Apply a brush to push push positions towards a direction in local, world or tagent space.
 
 ### **Material Blending**
+![Blend](Docs/Blend.png)
 Blend any type of material without writting new shaders for blending.
 
 ## Supported Platforms
