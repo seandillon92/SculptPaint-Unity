@@ -38,6 +38,8 @@ namespace PaintSculpt
             m_transform = renderer.transform;
             m_layermask = 1<<renderer.gameObject.layer;
 
+            
+
             var resolution = m_settings.resolution.GetInt();
             var read = new RenderTexture(resolution, resolution, 1, RenderTextureFormat.RGFloat);
             read.enableRandomWrite = true;

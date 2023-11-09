@@ -9,9 +9,6 @@ public class MaskedObject : MonoBehaviour
     internal List<Material> Materials { get; private set; } = new List<Material>();
     internal List<Material> Masks { get; private set; } = new List<Material>();
 
-    [SerializeField]
-    private Texture debug;
-
     private void Awake()
     {
         Renderer = GetComponent<MeshRenderer>();
@@ -22,10 +19,14 @@ public class MaskedObject : MonoBehaviour
         Renderer.SetSharedMaterials(materials);
     }
 
+    /// <summary>
+    /// Update the Mask.
+    /// </summary>
+    /// <param name="tex"> Texture to use as a mask</param>
+    /// <param name="index">Index of mask to be updated</param>
     public void UpdateMask(Texture tex, int index)
     {
         Masks[index].SetTexture("_MainTex", tex);
-        debug = tex;
     }
 
     private void Start()
