@@ -1,11 +1,18 @@
 ![Demo](Docs/LavaDemo.gif)
 # SculptPaint-Unity
-Sculpting and Painting package for Unity Runtime. The purpose of the package is to allow quick prototyping visual effects by using world space painting and sculpting.
+Sculpting and Painting package for Unity Runtime. Usefull for prototyping visual effects with world space painting and sculpting.
 
 ## Features
 ### **Painting**
+![Paint](Docs/Stamp.png)
+Paint your model. Apply decals that take the surface shape into account. 
+
 ### **Sculpting**
+![Sculpt](Docs/Sculpt.png)
+Modify the vertices of your model. Apply a brush to push push positions towards a direction in local, world or tagent space.
+
 ### **Material Blending**
+Blend any type of material without writting new shaders for blending.
 
 ## Supported Platforms
 ### Win, Mac, Linux :heavy_check_mark: 
