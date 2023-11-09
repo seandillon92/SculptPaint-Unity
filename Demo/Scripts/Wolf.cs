@@ -87,8 +87,8 @@ public class Wolf : MonoBehaviour
         var localFront = m_renderer.transform.InverseTransformPoint(frontFoot.position);
         var localBack = m_renderer.transform.InverseTransformPoint(backFoot.position);
 
-        m_paint.Write(localFront, Vector3.up, frontFoot.forward, Vector3.one);
-        m_paint.Write(localBack, Vector3.up, backFoot.forward, Vector3.one);
+        m_paint.Write(localFront, Vector3.up, frontFoot.forward);
+        m_paint.Write(localBack, Vector3.up, backFoot.forward);
 
         m_mask.UpdateMask(m_paint.Texture, index:0);
     }

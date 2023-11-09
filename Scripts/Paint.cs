@@ -17,6 +17,16 @@ namespace PaintSculpt
         private Capture m_capture;
         private RenderTexture m_captureTexture;
 
+        private Transform m_transform;
+        private LayerMask m_layermask;
+
+        /// <summary>
+        /// Create a paint component to paint on a mesh.
+        /// </summary>
+        /// <param name="settings">Paint settings to use</param>
+        /// <param name="brushSettings"> Brush settings to use</param>
+        /// <param name="renderer">The renderer of the object that is painted</param>
+        /// <exception cref="Exception"></exception>
         public Paint(PaintSettings settings, BrushSettings brushSettings, MeshRenderer renderer)
         {
             m_shader = Resources.Load<ComputeShader>("Paint");
@@ -25,8 +35,10 @@ namespace PaintSculpt
 
             m_settings = settings;
             m_brushSettings = brushSettings;
+            m_transform = renderer.transform;
+            m_layermask = 1<<renderer.gameObject.layer;
 
-            var resolution = m_settings.GetResolution();
+            var resolution = m_settings.resolution.GetInt();
             var read = new RenderTexture(resolution, resolution, 1, RenderTextureFormat.RGFloat);
             read.enableRandomWrite = true;
 
@@ -54,16 +66,26 @@ namespace PaintSculpt
             m_capture =
                 new Capture(
                     m_settings.camera,
-                    m_settings.layer,
+                    m_layermask,
                     new List<MeshRenderer>() { renderer },
                     new List<Material>() { m_settings.material });
 
             m_settings.material.SetTexture("_MainTex", m_brushSettings.texture);
         }
 
+        /// <summary>
+        /// The texture with the result. It has all the brush stamps accumulated.
+        /// </summary>
         public RenderTexture Texture => m_buffer.write;
 
-        public void Write(Vector3 position, Vector3 normal, Vector3 forward, Vector3 scale)
+        /// <summary>
+        /// Update the texture with a brush stamp.
+        /// </summary>
+        /// <param name="position">The stamp position in local space</param>
+        /// <param name="normal">The stamp normal vector in local space</param>
+        /// <param name="forward">The desired stamp forward direction in local space</param>
+        /// <exception cref="Exception"></exception>
+        public void Write(Vector3 position, Vector3 normal, Vector3 forward)
         {
             var material = m_settings.material;
             material.SetVector("position", position);
@@ -86,7 +108,7 @@ namespace PaintSculpt
             material.SetInt("space", (int)m_brushSettings.projection);
 
             m_settings.material.SetFloat("radius", 1.0f / m_brushSettings.size);
-            m_settings.material.SetVector("scale", scale);
+            m_settings.material.SetVector("scale", m_transform.lossyScale);
             m_settings.material.SetFloat("aspect", m_brushSettings.texture.width / ((float)m_brushSettings.texture.height));
 
             m_capture.Update(m_captureTexture);
@@ -99,6 +121,9 @@ namespace PaintSculpt
             m_shader.Dispatch(m_stamp, (int)(m_buffer.read.width / x), (int)(m_buffer.read.height / y), 1);
         }
 
+        /// <summary>
+        /// Update the painted texture with the delay and dissipation parameters. Call this once per frame.
+        /// </summary>
         public void Update()
         {
             m_buffer.Swap();

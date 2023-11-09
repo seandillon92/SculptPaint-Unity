@@ -408,12 +408,11 @@ MonoBehaviour:
   m_blend: {fileID: 2100000, guid: e148c27184d96cb4db75bad4f6b4bd6a, type: 2}
   m_materials:
   - materials:
-    - {fileID: 2100000, guid: 99c1bdce7a235b041a3e74b4d82473d1, type: 2}
+    - {fileID: 2100000, guid: 808e6047c73239f46ac7425fc704306c, type: 2}
     maskChannel: 0
   - materials:
-    - {fileID: 2100000, guid: 808e6047c73239f46ac7425fc704306c, type: 2}
+    - {fileID: 2100000, guid: 97600ef42b0a88b47adc4932a228ef49, type: 2}
     maskChannel: 1
-  m_camera: {fileID: 0}
   m_cull:
     serializedVersion: 2
     m_Bits: 64
@@ -550,35 +549,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_paintSettings:
-    dissipation: 1
-    delay: 1
+    dissipation: 0.1
+    delay: 10
     camera: {fileID: 480668178}
-    layer:
-      serializedVersion: 2
-      m_Bits: 64
     material: {fileID: 2100000, guid: 3882980e4d462fe4289a087add18708c, type: 2}
     resolution: 4096
   m_sculptSettings:
-    mesh: {fileID: 3849560595440693753}
-    camera: {fileID: 480668178}
-    strength: 100
-    space: 2
-    direction: {x: 0, y: 0, z: 1}
-  m_secondarySculptSettings:
-    mesh: {fileID: 3849560595440693753}
-    camera: {fileID: 480668178}
-    strength: 0
-    space: 2
-    direction: {x: 0, y: 0, z: 1}
+    strength: 0.1
+    space: 1
+    direction: {x: 0, y: -1, z: 0}
   m_brushSettings:
     size: 0.5
-    minSize: 0.1
-    maxSize: 1
-    pressure: 0.1
-    texture: {fileID: 344203572767130007, guid: c0d9fcae930d4a344b5ef20bd24a47fc, type: 3}
+    texture: {fileID: 2800000, guid: 546600da9b52227478895abfaf1df6d9, type: 3}
     projection: 0
     rotation: 270
   m_controlSettings:
+    minBrushSize: 0.1
+    maxBrushSize: 10
     rotateVelocity: 0.1
     sizeChangeSpeed: 10
     distanceMin: 2

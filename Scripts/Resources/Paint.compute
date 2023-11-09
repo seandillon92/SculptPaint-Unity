@@ -8,7 +8,6 @@
 RWTexture2D<float2> Write;
 Texture2D<float2> Read;
 
-float pressure;
 float dissipation;
 float delay;
 

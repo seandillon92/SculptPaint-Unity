@@ -10,16 +10,12 @@ public class Meltdown : MonoBehaviour
     private SculptSettings m_sculptSettings;
     
     [SerializeField]
-    private SculptSettings m_secondarySculptSettings;
-
-    [SerializeField]
     private BrushSettings m_brushSettings;
     [SerializeField]
     private ControlSettings m_controlSettings;
 
     private Paint m_paint;
     private Sculpt m_sculpt;
-    private Sculpt m_sculpt_secondary;
     private Control m_control;
 
     [SerializeField]
@@ -30,18 +26,20 @@ public class Meltdown : MonoBehaviour
 
     private MeshRenderer m_renderer;
     private MeshCollider m_collider;
+    private MeshFilter m_filter;
 
     private void Awake()
     {
+        m_renderer = GetComponent<MeshRenderer>();
         m_collider = GetComponent<MeshCollider>();
+        m_filter = GetComponent<MeshFilter>();
     }
     private void Start()
     {
-        m_renderer = GetComponent<MeshRenderer>();
+
         m_paint = new Paint(m_paintSettings, m_brushSettings, m_renderer );
 
-        m_sculpt = new Sculpt(m_sculptSettings, m_brushSettings);
-        m_sculpt_secondary = new Sculpt(m_secondarySculptSettings, m_brushSettings);
+        m_sculpt = new Sculpt(m_sculptSettings, m_brushSettings, m_filter);
         m_control = new Control(m_controlSettings, m_brushSettings);
 
         m_collider.sharedMesh = m_sculpt.Mesh;
@@ -60,45 +58,26 @@ public class Meltdown : MonoBehaviour
                 var point =  hit.transform.InverseTransformPoint(hit.point);
                 var normal = hit.transform.InverseTransformDirection(hit.normal);
                 var forward = hit.transform.InverseTransformDirection(Vector3.up);
-                m_paint.Write(point, normal, forward, transform.lossyScale);
+                m_paint.Write(point, normal, forward);
                 
-                StartCoroutine(MeltDown(point, normal, forward, hit.transform.lossyScale));
+                StartCoroutine(MeltGeometry(point, normal, forward));
             }
         }
         m_paint.Update();
         m_object.UpdateMask(m_paint.Texture, 0);
     }
 
-    private IEnumerator MeltDown(Vector3 position, Vector3 normal, Vector3 forward, Vector3 scale)
-    {
-        yield return MeltGeometry(position, normal, forward, scale);
-    }
 
-    private IEnumerator MeltGeometry(Vector3 position, Vector3 normal, Vector3 forward, Vector3 scale)
+    private IEnumerator MeltGeometry(Vector3 position, Vector3 normal, Vector3 forward)
     {
         var timer = 0.0f;
         var maxTime = m_paintSettings.delay;
-        var brushSize = m_brushSettings.size;
-        var aspect = m_brushSettings.texture.width / ((float)m_brushSettings.texture.height);
         while (timer < maxTime)
         {
             m_sculpt.Update(
                 position,
                 normal,
-                forward,
-                scale,
-                aspect,
-                brushSize,
-                deformation: 0.0001f * Time.deltaTime);
-
-            m_sculpt_secondary.Update(
-                position,
-                normal,
-                forward,
-                scale,
-                aspect,
-                brushSize,
-                deformation: 0.0001f * Time.deltaTime);
+                forward);
 
             yield return null;
 

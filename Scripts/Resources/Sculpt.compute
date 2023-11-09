@@ -31,8 +31,6 @@ float radius;
 float3 scale;
 float aspect;
 
-float maxDeformation;
-
 float3 direction;
 
 // 0 - World
@@ -155,6 +153,6 @@ void Update(uint3 id : SV_DispatchThreadID) {
     }
 
     // Modify the vertex position
-    vertex.xyz += direction * lerp(0, maxDeformation, w);
+    vertex.xyz += direction;
     setPosition(index, vertex);
 }

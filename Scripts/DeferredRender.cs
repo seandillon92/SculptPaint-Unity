@@ -36,7 +36,6 @@ internal class DeferredRender : MonoBehaviour
     [SerializeField]
     private List<MaterialSet> m_materials;
 
-    [SerializeField]
     private Camera m_camera;
 
     [SerializeField]

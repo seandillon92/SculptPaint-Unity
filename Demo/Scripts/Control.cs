@@ -7,6 +7,12 @@ using UnityEngine;
 internal class ControlSettings
 {
     [SerializeField]
+    internal float minBrushSize = 0.1f;
+
+    [SerializeField]
+    internal float maxBrushSize = 10f;
+
+    [SerializeField]
     internal float rotateVelocity = 0.1f;
 
     [SerializeField]
@@ -105,6 +111,7 @@ internal class Control
     private void UpdateBrushSize()
     {
         m_brushSettings.size += m_settings.sizeChangeSpeed * Time.deltaTime * Input.mouseScrollDelta.y;
-        m_brushSettings.size = Mathf.Max(m_brushSettings.size, m_brushSettings.minSize);
+        
+        m_brushSettings.size = Mathf.Clamp(m_brushSettings.size, m_settings.minBrushSize, m_settings.maxBrushSize);
     }
 }

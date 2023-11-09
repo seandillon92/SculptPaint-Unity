@@ -14,16 +14,25 @@ namespace PaintSculpt
         private int m_threadGroupX;
         private int m_direction;
 
-        public Sculpt(SculptSettings settings, BrushSettings brushSettings)
+        private Transform m_transform;
+
+        /// <summary>
+        /// Create a Sculpt component to change the vertex positions of a mesh.
+        /// </summary>
+        /// <param name="settings"> Sculpt settings</param>
+        /// <param name="brushSettings"> Brush settings </param>
+        /// <param name="mesh">MeshFilter containing the mesh to be modifier. 
+        /// Only an instance of the mesh will be modified instead the original mesh.</param>
+        public Sculpt(SculptSettings settings, BrushSettings brushSettings, MeshFilter mesh)
         {
             m_settings = settings;
             m_brushSettings = brushSettings;
             m_shader = Resources.Load<ComputeShader>("Sculpt");
             m_kernel = m_shader.FindKernel("Update");
             m_direction = Shader.PropertyToID("direction");
+            m_transform = mesh.transform;
 
-
-            Mesh = m_settings.mesh.mesh;
+            Mesh = mesh.mesh;
             Mesh.vertexBufferTarget |= GraphicsBuffer.Target.Raw;
 
             using var buffer = Mesh.GetVertexBuffer(0);
@@ -50,18 +59,14 @@ namespace PaintSculpt
         public void Update(
             Vector3 position,
             Vector3 normal,
-            Vector3 forward,
-            Vector3 scale,
-            float aspect,
-            float brushSize,
-            float deformation)
+            Vector3 forward)
         {
             var direction = m_settings.direction;
             var space = m_settings.space;
             if (space == SculptSettings.Space.World)
             {
                 direction =
-                    m_settings.mesh.transform.worldToLocalMatrix.MultiplyVector(direction).normalized;
+                    m_transform.worldToLocalMatrix.MultiplyVector(direction).normalized;
             }
 
             m_shader.SetInt("space", (int)space);
@@ -81,11 +86,10 @@ namespace PaintSculpt
             m_shader.SetVector("forward", forward.normalized);
             m_shader.SetFloat("rotation", m_brushSettings.rotation);
 
-            m_shader.SetFloat("aspect", aspect);
-            m_shader.SetVector("scale", scale);
+            m_shader.SetFloat("aspect", m_brushSettings.Aspect);
+            m_shader.SetVector("scale", m_transform.lossyScale);
 
-            m_shader.SetFloat("radius", 1.0f / brushSize);
-            m_shader.SetFloat("maxDeformation", deformation);
+            m_shader.SetFloat("radius", 1.0f / m_brushSettings.size);
             m_shader.SetVector(m_direction, direction);
             var maxThreadSize = 65535;
             var iterations = m_threadGroupX / maxThreadSize;
