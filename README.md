@@ -94,7 +94,7 @@ Create custom behaviors by using the Paint and Sculpt APIs.
 ```
 ### Rendering blended materials
 #### 1. Masked Objects
-Add a MaskObject component on the gameobject you want to paint/sculpt. On you behavior script, reference the MaskObject component and use the API to update the mask with your painted texture.
+Add a MaskObject component on the gameobject you want to render with blended materials. On you behavior script, reference the MaskObject component and use the API to update the mask with your texture.
 ```csharp
     /// <summary>
     /// Update the Mask.
@@ -105,7 +105,7 @@ Add a MaskObject component on the gameobject you want to paint/sculpt. On you be
 ```
 
 #### 2. DeferredRender
-Add a DeferredRender component to the camera that renders your scene. The component will automatically pick all the MaskObject behaviors render them using the provided List of materials and mask channels.
+Add a DeferredRender component to the camera that renders your scene. The component will automatically pick all the behaviors with MaskObject components and render them using the provided List of materials and mask channels.
 
 ## Credits
 Originally, the system was working only in screen space. I implemented the approach described in [1] to convert it into world space. I extended it with decals (brushes) and my own solution for the rasterization artefact.
