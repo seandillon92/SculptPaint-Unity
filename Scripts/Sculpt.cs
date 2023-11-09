@@ -56,6 +56,12 @@ namespace PaintSculpt
             m_shader.SetTexture(m_kernel, "brushTexture", m_brushSettings.texture);
         }
 
+        /// <summary>
+        /// Update the geometry with brush stamp.
+        /// </summary>
+        /// <param name="position">The stamp position in local space</param>
+        /// <param name="normal">The stamp normal vector in local space</param>
+        /// <param name="forward">The desired stamp forward direction in local space</param>
         public void Update(
             Vector3 position,
             Vector3 normal,
