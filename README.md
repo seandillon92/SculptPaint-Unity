@@ -57,7 +57,7 @@ Create custom behaviors by using the Paint and Sculpt APIs.
         /// <summary>
         /// The texture with the result. It has all the brush stamps accumulated.
         /// </summary>
-        public RenderTexture Texture;
+        public RenderTexture Texture
 
         /// <summary>
         /// Update the texture with a brush stamp.
