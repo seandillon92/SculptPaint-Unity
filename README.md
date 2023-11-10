@@ -26,9 +26,12 @@ Builds are possible, though code has been developed and optimized only for deskt
 WebGL does not support Compute Shaders.
 
 ## Supported Rendering Pipelines
-* Built-In (Standard) ✔️
-* URP ❌
-* HDRP ❌
+
+|            Pipeline         | Paint       |   Sculpt | Material Blend |
+| --------------------| --------------------| --------------- |  --------------- |
+| Built-in | ✔️ | ✔️ | ✔️ |
+| URP | ✔️ | ✔️ | ❌ |
+| HDRP | ✔️ | ✔️| ❌ |
 
 ## Supported Editor Versions
 * Unity 2022 LTS ✔️
